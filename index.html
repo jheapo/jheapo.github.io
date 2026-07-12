@@ -1,0 +1,105 @@
+---
+layout: default
+---
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Java heap-dump analyzer</p>
+      <h1>JHeapo</h1>
+      <p class="hero-sub">Analyze Large Heaps</p>
+      <p class="hero-lede">
+        A streaming, out-of-core analyzer that finds the memory waste driving up
+        your latency, GC pauses, and cloud bill — in heaps far larger than RAM.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="{{ site.github_repo }}">Get started</a>
+        <a class="btn btn-ghost" href="{{ site.github_repo }}">Get the code</a>
+      </div>
+      <p class="hero-note">Open source · Zero runtime dependencies · Runs on a modest heap</p>
+    </div>
+    <div class="hero-art">
+      <!-- PLACEHOLDER — replace with the JHeapo icon / mascot -->
+      <img src="{{ '/assets/img/logo-placeholder.svg' | relative_url }}" alt="JHeapo logo placeholder">
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section class="section" id="features">
+  <div class="wrap">
+    <h2 class="section-title">What it does</h2>
+    <p class="section-lede">Everything you need to understand a large heap — and nothing you don't.</p>
+    <div class="feature-grid">
+      {% for f in site.data.features %}
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">{{ f.icon }}</span>
+        <h3>{{ f.title }}</h3>
+        <p>{{ f.body }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHY IT MATTERS ================= -->
+<section class="section section-alt" id="why">
+  <div class="wrap">
+    <h2 class="section-title">Why it matters</h2>
+    <p class="section-lede">
+      Wasted memory is not free. Every duplicated string and half-empty collection
+      makes the JVM work harder. Cut the waste and three things improve at once.
+    </p>
+    <div class="why-grid">
+      <div class="why-card">
+        <h3>Lower latency</h3>
+        <p>A smaller live set means less to allocate, scan, and copy. Requests spend less time waiting on the JVM.</p>
+      </div>
+      <div class="why-card">
+        <h3>Stable latency</h3>
+        <p>Less garbage means fewer and shorter GC pauses — flatter tail latencies and fewer nasty p99 spikes.</p>
+      </div>
+      <div class="why-card">
+        <h3>Lower cost</h3>
+        <p>Fit in a smaller heap and you fit on smaller instances, or pack more per node. Wasted RAM is a line item.</p>
+      </div>
+    </div>
+    <p class="why-kicker">
+      Often it takes changing only a handful of lines to reclaim a large fraction of the heap.
+      JHeapo points you straight at them.
+    </p>
+  </div>
+</section>
+
+<!-- ================= TOUR ================= -->
+<section class="section" id="tour">
+  <div class="wrap">
+    <h2 class="section-title">Take the tour</h2>
+    <p class="section-lede">Placeholder screenshots — final shots and copy land here soon.</p>
+
+    {% for row in site.data.tour %}
+    <div class="tour-row {% cycle 'left', 'right' %}" id="{{ row.id }}">
+      <div class="tour-text">
+        <p class="eyebrow">{{ row.eyebrow }}</p>
+        <h3>{{ row.title }}</h3>
+        <ul class="ticks">
+          {% for p in row.points %}<li>{{ p }}</li>{% endfor %}
+        </ul>
+      </div>
+      <div class="tour-shot">
+        <img src="{{ row.image | relative_url }}" alt="{{ row.title }} — screenshot placeholder" loading="lazy">
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ================= CTA BANNER ================= -->
+<section class="cta-banner">
+  <div class="wrap cta-inner">
+    <h2>Point it at a dump. Watch the waste appear.</h2>
+    <p><code>java -jar jheapo.jar your-dump.hprof</code></p>
+    <a class="btn btn-primary" href="{{ site.github_repo }}">Get started</a>
+  </div>
+</section>

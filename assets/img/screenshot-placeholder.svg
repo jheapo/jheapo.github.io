@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Screenshot placeholder">
+  <rect width="800" height="500" rx="14" fill="#0f1c2b"/>
+  <rect x="0" y="0" width="800" height="42" rx="14" fill="#16283c"/>
+  <circle cx="26" cy="21" r="6" fill="#ff5f56"/>
+  <circle cx="48" cy="21" r="6" fill="#ffbd2e"/>
+  <circle cx="70" cy="21" r="6" fill="#27c93f"/>
+  <!-- fake sidebar -->
+  <rect x="20" y="62" width="170" height="418" rx="8" fill="#16283c"/>
+  <g fill="#274158">
+    <rect x="36" y="82"  width="130" height="14" rx="4"/>
+    <rect x="36" y="110" width="110" height="14" rx="4"/>
+    <rect x="36" y="138" width="130" height="14" rx="4"/>
+    <rect x="36" y="166" width="96"  height="14" rx="4"/>
+    <rect x="36" y="194" width="120" height="14" rx="4"/>
+  </g>
+  <!-- fake table -->
+  <g fill="#22384f">
+    <rect x="210" y="82"  width="570" height="30" rx="6"/>
+    <rect x="210" y="122" width="570" height="24" rx="6"/>
+    <rect x="210" y="154" width="570" height="24" rx="6"/>
+    <rect x="210" y="186" width="570" height="24" rx="6"/>
+    <rect x="210" y="218" width="570" height="24" rx="6"/>
+  </g>
+  <!-- fake bars -->
+  <g fill="#12a3b0">
+    <rect x="210" y="300" width="380" height="20" rx="4"/>
+    <rect x="210" y="332" width="300" height="20" rx="4"/>
+    <rect x="210" y="364" width="230" height="20" rx="4"/>
+    <rect x="210" y="396" width="150" height="20" rx="4"/>
+  </g>
+  <text x="495" y="450" text-anchor="middle" font-family="monospace" font-size="16" fill="#4a6076" letter-spacing="2">SCREENSHOT PLACEHOLDER</text>
+</svg>

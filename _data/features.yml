@@ -1,0 +1,24 @@
+# Feature grid — short, point-form, jreleaser-style.
+- icon: "∞"
+  title: Out-of-core
+  body: Builds its indexes on disk and memory-maps them. Analyze heaps far larger than the machine's RAM.
+
+- icon: "◱"
+  title: Finds the waste
+  body: Duplicate strings, underused collections, boxed numbers, empty arrays — the fat that quietly fills your heap.
+
+- icon: "⚑"
+  title: Leak suspects
+  body: Automatically surfaces who is holding memory the collector can't reclaim, and the reference chain that proves it.
+
+- icon: "⤵"
+  title: Retained & dominators
+  body: See exactly how much memory frees when a reference is cut — retained sizes and the dominator tree, computed fast.
+
+- icon: "≡"
+  title: Live web UI
+  body: Results stream into a local browser view as each phase completes. No waiting for the whole dump to finish.
+
+- icon: "✦"
+  title: Ask Claude
+  body: An optional AI panel that answers plain-language questions about the analyzed heap. Enabled when a key is present.

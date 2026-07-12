@@ -1,0 +1,20 @@
+<header class="site-header" id="top">
+  <div class="wrap nav">
+    <a class="brand" href="{{ '/' | relative_url }}">
+      <!-- PLACEHOLDER icon — swap for the real JHeapo mark -->
+      <img class="brand-mark" src="{{ '/assets/img/logo-placeholder.svg' | relative_url }}" alt="">
+      <span class="brand-name">JHeapo</span>
+    </a>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="nav-burger" aria-label="Menu"><span></span></label>
+
+    <nav class="nav-links">
+      <a href="{{ '/#features' | relative_url }}">Features</a>
+      <a href="{{ '/#why' | relative_url }}">Why it matters</a>
+      <a href="{{ '/#tour' | relative_url }}">Tour</a>
+      <a href="{{ site.docs_url }}">Docs</a>
+      <a class="nav-gh" href="{{ site.github_repo }}">GitHub</a>
+    </nav>
+  </div>
+</header>

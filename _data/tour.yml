@@ -1,0 +1,29 @@
+# Screenshot showcase — alternating rows. Drop real screenshots into
+# assets/img/ and set `image` per row. Copy is placeholder until shots
+# are chosen; keep each `points` list short and concrete.
+- id: overview
+  eyebrow: Start here
+  title: The whole heap, at a glance
+  points:
+    - Size, object count, and where the memory actually went.
+    - The biggest classes and instances, ranked on arrival.
+    - Every view streams in live as analysis proceeds.
+  image: "/assets/img/screenshot-placeholder.svg"
+
+- id: waste
+  eyebrow: Reduce footprint
+  title: See the memory you're wasting
+  points:
+    - Duplicate strings and objects collapsed into one line each.
+    - Under-filled collections and arrays carrying dead capacity.
+    - A short list of concrete places to reclaim megabytes.
+  image: "/assets/img/screenshot-placeholder.svg"
+
+- id: leaks
+  eyebrow: Stop the growth
+  title: Follow the chain to the leak
+  points:
+    - Leak suspects extracted automatically — no hunting.
+    - Retained size tells you what really frees if you cut it.
+    - Reference traces expand in place, root to object.
+  image: "/assets/img/screenshot-placeholder.svg"

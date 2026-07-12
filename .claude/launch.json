@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jheapo-website",
+      "runtimeExecutable": "jekyll",
+      "runtimeArgs": ["serve", "-s", ".", "-d", "_site", "-P", "4000", "--no-watch"],
+      "port": 4000
+    }
+  ]
+}

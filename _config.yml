@@ -1,0 +1,30 @@
+# --- Site ---------------------------------------------------------------
+title: JHeapo
+tagline: Analyze Large Heaps
+description: >-
+  JHeapo is a streaming, out-of-core Java heap-dump analyzer. Find the memory
+  waste that drives up latency, destabilizes GC pauses, and inflates your cloud
+  bill — in heaps far larger than RAM.
+
+# Absolute URL of the deployed site. Leave baseurl empty when served at the
+# domain root; set it to "/jheapo" (etc.) if served from a subpath.
+url: ""
+baseurl: ""
+
+# Repository / external links surfaced in the nav and footer.
+github_repo: https://github.com/kcpeppe/jheapo
+docs_url: "#"          # docs live on a separate site; wire this up later
+
+author: Kirk Pepperdine
+
+# --- Build --------------------------------------------------------------
+# No external theme gem — the layout is self-contained so this builds the same
+# on plain Jekyll and on GitHub Pages.
+markdown: kramdown
+permalink: pretty
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor

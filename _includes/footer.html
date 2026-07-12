@@ -1,0 +1,25 @@
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <img class="brand-mark" src="{{ '/assets/img/logo-placeholder.svg' | relative_url }}" alt="">
+      <span class="brand-name">JHeapo</span>
+      <p class="footer-tag">Analyze large heaps. Cut the waste.</p>
+    </div>
+    <nav class="footer-col">
+      <h4>Project</h4>
+      <a href="{{ site.github_repo }}">GitHub</a>
+      <a href="{{ site.docs_url }}">Documentation</a>
+      <a href="{{ site.github_repo }}/issues">Issues</a>
+    </nav>
+    <nav class="footer-col">
+      <h4>Explore</h4>
+      <a href="{{ '/#features' | relative_url }}">Features</a>
+      <a href="{{ '/#why' | relative_url }}">Why it matters</a>
+      <a href="{{ '/#tour' | relative_url }}">Tour</a>
+    </nav>
+  </div>
+  <div class="wrap footer-legal">
+    <span>© {{ 'now' | date: "%Y" }} {{ site.author }}.</span>
+    <a href="{{ '/#top' | relative_url }}">Back to top ↑</a>
+  </div>
+</footer>
