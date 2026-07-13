@@ -4,7 +4,7 @@
     {
       "name": "jheapo-website",
       "runtimeExecutable": "jekyll",
-      "runtimeArgs": ["serve", "-s", ".", "-d", "_site", "-P", "4000", "--no-watch"],
+      "runtimeArgs": ["serve", "-s", ".", "-d", "_site", "-P", "4000"],
       "port": 4000
     }
   ]

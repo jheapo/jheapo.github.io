@@ -11,9 +11,10 @@ description: >-
 url: ""
 baseurl: ""
 
-# Repository / external links surfaced in the nav and footer.
-github_repo: https://github.com/kcpeppe/jheapo
+# External links surfaced in the nav and footer.
 docs_url: "#"          # docs live on a separate site; wire this up later
+# Where "Request a demo" / "Contact" go. Swap for a dedicated address if desired.
+contact_email: kirk.pepperdine@gmail.com
 
 author: Kirk Pepperdine
 

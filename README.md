@@ -27,7 +27,7 @@ Copy is data-driven — you rarely touch HTML:
 | `_data/features.yml` | The "What it does" feature grid |
 | `_data/tour.yml`     | The screenshot showcase rows (copy + `image:` path) |
 | `index.html`         | Hero, "Why it matters", CTA banner |
-| `_config.yml`        | Title, tagline, `github_repo`, `docs_url` |
+| `_config.yml`        | Title, tagline, `docs_url` |
 | `assets/css/main.css`| Colors live in the `:root` block at the top |
 
 ## Placeholders to replace
