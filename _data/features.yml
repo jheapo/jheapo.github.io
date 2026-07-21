@@ -1,7 +1,13 @@
-# Feature grid — short, point-form, jreleaser-style.
+# Feature grid — short, point-form. Scoped to what jheapo can honestly
+# measure/do (instruments, not verdicts). Icons are still placeholders.
 - icon: "∞"
-  title: Out-of-core
-  body: Builds its indexes on disk and memory-maps them. Analyze heaps far larger than the machine's RAM.
+  title: Built to scale
+  body: Analyze a heap far larger than the machine's RAM — crack open your biggest production dump without provisioning a giant box to hold it.
+
+# The knot icon here is a placeholder for a proper "entanglement" mark.
+- icon: "➿"
+  title: Entanglement
+  body: "A new lens on retention: measure how entangled your objects are — a proxy for domain complexity."
 
 - icon: "◱"
   title: Finds the waste
@@ -9,16 +15,12 @@
 
 - icon: "⚑"
   title: Leak suspects
-  body: Automatically surfaces who is holding memory the collector can't reclaim, and the reference chain that proves it.
+  body: The biggest retainers in your heap, ranked — the first suspects to check when memory won't let go.
 
-- icon: "⤵"
-  title: Retained & dominators
-  body: See exactly how much memory frees when a reference is cut — retained sizes and the dominator tree, computed fast.
-
-- icon: "≡"
-  title: Live web UI
-  body: Results stream into a local browser view as each phase completes. No waiting for the whole dump to finish.
+- icon: "❖"
+  title: Object model complexity
+  body: Put a number on how complex your object model really is — the sprawl and depth of the types filling your heap.
 
 - icon: "✦"
-  title: Ask Claude
+  title: AI Assist
   body: An optional AI panel that answers plain-language questions about the analyzed heap. Enabled when a key is present.

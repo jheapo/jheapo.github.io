@@ -149,14 +149,12 @@ code { font-family: var(--mono); }
 
 /* ---------- feature grid ---------- */
 .feature-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.6rem 2.4rem;
 }
+/* Flat points, no card chrome — jxray-style. */
 .feature-card {
-  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 1.6rem; box-shadow: var(--shadow);
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  padding: 0;
 }
-.feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--brand-2); }
 .feature-icon {
   display: inline-grid; place-items: center;
   width: 46px; height: 46px; border-radius: 12px;
@@ -179,6 +177,14 @@ code { font-family: var(--mono); }
   font-size: 1.1rem; color: var(--ink); font-weight: 550;
 }
 
+/* ---------- jscrub flow ---------- */
+.jscrub-flow {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.6rem 2.4rem;
+}
+.jscrub-step h3 { font-size: 1.25rem; margin-bottom: .35rem; }
+.jscrub-step p:last-child { color: var(--ink-soft); margin: 0; }
+.jscrub-cta { text-align: center; margin-top: 3rem; }
+
 /* ---------- tour ---------- */
 .tour-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center;
@@ -200,11 +206,24 @@ code { font-family: var(--mono); }
   box-shadow: var(--shadow-lg);
 }
 
-/* ---------- CTA banner ---------- */
+/* ---------- CTA banner (same background as the Features section) ---------- */
 .cta-banner {
-  background: linear-gradient(90deg, var(--brand-ink), var(--brand-2));
-  color: #fff; text-align: center; padding: clamp(3rem, 6vw, 4.5rem) 0;
+  background: var(--bg);
+  text-align: center; padding: clamp(3rem, 6vw, 4.5rem) 0;
 }
+
+/* ---------- Tour band: the same deep teal as the hero ---------- */
+.section-brand {
+  background: radial-gradient(120% 140% at 80% -10%, var(--hero-bg-2), var(--hero-bg-1));
+  color: #fff;
+}
+/* Tour text/marks made readable on the deep-teal band */
+.section-brand .section-lede,
+.section-brand .ticks li { color: rgba(255,255,255,.85); }
+.section-brand .eyebrow { color: #d7ecee; }
+.section-brand .ticks li::before { background: #fff; color: var(--brand-ink); }
+.section-brand .tour-row + .tour-row { border-top-color: rgba(255,255,255,.18); }
+.section-brand .tour-shot img { border-color: rgba(255,255,255,.22); }
 .cta-banner h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); }
 .cta-inner p { margin: .8rem 0 1.6rem; }
 .cta-inner code {
@@ -240,7 +259,7 @@ code { font-family: var(--mono); }
   .hero-cta { justify-content: center; }
   .hero-art { order: -1; }
   .hero-art img { max-width: 220px; }
-  .feature-grid, .why-grid { grid-template-columns: 1fr; }
+  .feature-grid, .jscrub-flow { grid-template-columns: 1fr; }
   .tour-row, .tour-row.right .tour-text { grid-template-columns: 1fr; order: initial; }
   .tour-row.right .tour-shot { order: -1; }
   .footer-grid { grid-template-columns: 1fr; }

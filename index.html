@@ -39,37 +39,37 @@ layout: default
   </div>
 </section>
 
-<!-- ================= WHY IT MATTERS ================= -->
-<section class="section section-alt" id="why">
+<!-- ================= JSCRUB ================= -->
+<section class="section section-alt" id="jscrub">
   <div class="wrap">
-    <h2 class="section-title">Why it matters</h2>
+    <h2 class="section-title">Safe Third-Party Sharing</h2>
     <p class="section-lede">
-      Wasted memory is not free. Every duplicated string and half-empty collection
-      makes the JVM work harder. Cut the waste and three things improve at once.
+      A heap dump is a full copy of your application's memory — personal data and all.
+      jscrub pseudonymizes it so 3rd parties can analyze production dumps while
+      respecting your local data privacy regulations.
     </p>
-    <div class="why-grid">
-      <div class="why-card">
-        <h3>Lower latency</h3>
-        <p>A smaller live set means less to allocate, scan, and copy. Requests spend less time waiting on the JVM.</p>
+    <div class="jscrub-flow">
+      <div class="jscrub-step">
+        <h3>No inference</h3>
+        <p>jscrub pseudonymizes class, field and method names, not just the values — so the dump gives away neither data nor its meaning.</p>
       </div>
-      <div class="why-card">
-        <h3>Stable latency</h3>
-        <p>Less garbage means fewer and shorter GC pauses — flatter tail latencies and fewer nasty p99 spikes.</p>
+      <div class="jscrub-step">
+        <h3>Your data never leaves home</h3>
+        <p>Pseudonymization runs on your own infrastructure. Personal data stays with you and you alone.</p>
       </div>
-      <div class="why-card">
-        <h3>Lower cost</h3>
-        <p>Fit in a smaller heap and you fit on smaller instances, or pack more per node. Wasted RAM is a line item.</p>
+      <div class="jscrub-step">
+        <h3>You hold the key</h3>
+        <p>jscrub can re-identify a JHeapo report back to real values for readability — but the key stays with you.</p>
       </div>
     </div>
-    <p class="why-kicker">
-      Often it takes changing only a handful of lines to reclaim a large fraction of the heap.
-      JHeapo points you straight at them.
-    </p>
+    <div class="jscrub-cta">
+      <a class="btn btn-primary" href="{{ site.jscrub_url }}">Explore jscrub</a>
+    </div>
   </div>
 </section>
 
 <!-- ================= TOUR ================= -->
-<section class="section" id="tour">
+<section class="section section-brand" id="tour">
   <div class="wrap">
     <h2 class="section-title">Take the tour</h2>
     <p class="section-lede">Placeholder screenshots — final shots and copy land here soon.</p>
@@ -94,8 +94,7 @@ layout: default
 <!-- ================= CTA BANNER ================= -->
 <section class="cta-banner">
   <div class="wrap cta-inner">
-    <h2>Point it at a dump. Watch the waste appear.</h2>
-    <p>See how much memory JHeapo can help you reclaim.</p>
+    <p>Reduce your memory footprint with JHeapo</p>
     <a class="btn btn-primary" href="mailto:{{ site.contact_email }}?subject=JHeapo%20demo%20request">Request a demo</a>
   </div>
 </section>
