@@ -135,6 +135,8 @@ code { font-family: var(--mono); }
   width: 100%; max-width: 340px; margin-inline: auto;
   filter: drop-shadow(0 20px 40px rgba(0,0,0,.4));
 }
+/* Wide line-art hippo (3.5:1) — bigger, no heavy shadow. */
+.hero-art--wide img { max-width: 520px; filter: none; }
 
 /* ============================================================
    Sections

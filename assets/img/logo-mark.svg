@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="15" fill="#0e7c86"/>
+  <g fill="#eaf4f5">
+    <!-- ears -->
+    <circle cx="21" cy="21" r="4.2"/>
+    <circle cx="43" cy="21" r="4.2"/>
+    <!-- head / muzzle -->
+    <path d="M15 34
+             c0-8 7-13 17-13
+             s17 5 17 13
+             c0 7-5 12-12 13
+             c-2 .3-8 .3-10 0
+             c-7-1-12-6-12-13 z"/>
+  </g>
+  <!-- eyes -->
+  <circle cx="24" cy="30" r="2.1" fill="#0a5a62"/>
+  <circle cx="40" cy="30" r="2.1" fill="#0a5a62"/>
+  <!-- nostrils -->
+  <ellipse cx="27.5" cy="42" rx="2.3" ry="3" fill="#0a5a62"/>
+  <ellipse cx="36.5" cy="42" rx="2.3" ry="3" fill="#0a5a62"/>
+</svg>
