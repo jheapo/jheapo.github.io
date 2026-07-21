@@ -184,6 +184,7 @@ code { font-family: var(--mono); }
 .jscrub-step h3 { font-size: 1.25rem; margin-bottom: .35rem; }
 .jscrub-step p:last-child { color: var(--ink-soft); margin: 0; }
 .jscrub-cta { text-align: center; margin-top: 3rem; }
+.jscrub-fineprint { text-align: center; margin: 1.4rem auto 0; max-width: 62ch; font-size: .82rem; color: var(--ink-soft); }
 
 /* ---------- tour ---------- */
 .tour-row {
