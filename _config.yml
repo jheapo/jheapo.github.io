@@ -8,7 +8,7 @@ description: >-
 
 # Absolute URL of the deployed site. Leave baseurl empty when served at the
 # domain root; set it to "/jheapo" (etc.) if served from a subpath.
-url: ""
+url: "https://jheapo.github.io"
 baseurl: ""
 
 # External links surfaced in the nav and footer.
