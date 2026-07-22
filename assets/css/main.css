@@ -111,12 +111,14 @@ code { font-family: var(--mono); }
 .hero {
   background: radial-gradient(120% 140% at 80% -10%, var(--hero-bg-2), var(--hero-bg-1));
   color: #eaf4f5;
-  padding: clamp(3rem, 8vw, 6.5rem) 0;
+  padding: clamp(3rem, 8vw, 6.5rem) 0 0;  /* no bottom padding: hippo reaches the section edge (the "waterline") */
   overflow: hidden;
 }
 .hero-grid {
-  display: grid; grid-template-columns: 1.15fr .85fr; gap: 2.5rem; align-items: center;
+  display: grid; grid-template-columns: 1.15fr .85fr; gap: 2.5rem; align-items: end;
 }
+/* Copy floats above the waterline; the hippo's bottom meets the section's color change. */
+.hero-copy { padding-bottom: clamp(2.5rem, 6vw, 5rem); }
 .hero .eyebrow { color: var(--accent); }
 .hero h1 {
   font-size: clamp(3rem, 7vw, 5rem);
@@ -135,8 +137,8 @@ code { font-family: var(--mono); }
   width: 100%; max-width: 340px; margin-inline: auto;
   filter: drop-shadow(0 20px 40px rgba(0,0,0,.4));
 }
-/* Wide line-art hippo (3.5:1) — bigger, no heavy shadow. */
-.hero-art--wide img { max-width: 520px; filter: none; }
+/* Wide line-art hippo (3.5:1) — bigger, no heavy shadow; bottom flush with the section edge. */
+.hero-art--wide img { max-width: 520px; filter: none; display: block; margin-bottom: 0; }
 
 /* ============================================================
    Sections
@@ -262,7 +264,7 @@ code { font-family: var(--mono); }
   .hero-grid { grid-template-columns: 1fr; text-align: center; }
   .hero-lede { margin-inline: auto; }
   .hero-cta { justify-content: center; }
-  .hero-art { order: -1; }
+  .hero-art { order: 1; }              /* hippo below the copy, floating on the waterline */
   .hero-art img { max-width: 220px; }
   .feature-grid, .jscrub-flow { grid-template-columns: 1fr; }
   .tour-row, .tour-row.right .tour-text { grid-template-columns: 1fr; order: initial; }
