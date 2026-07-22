@@ -42,11 +42,12 @@ layout: default
 <!-- ================= JSCRUB ================= -->
 <section class="section section-alt" id="jscrub">
   <div class="wrap">
+    <img class="jscrub-mark" src="{{ '/assets/img/jscrub-duke.png' | relative_url }}" alt="JScrub — Duke holding a mop">
     <h2 class="section-title">JScrub — Safely Share Heap Dumps</h2>
     <p class="section-lede">
       A heap dump is a full copy of your application's memory — personal data and all.
-      JScrub pseudonymizes it so 3rd parties can analyze production dumps while
-      respecting your local data privacy regulations.
+      JScrub pseudonymizes it so 3rd parties can analyze the heap without being
+      exposed to private data.
     </p>
     <div class="jscrub-flow">
       <div class="jscrub-step">
@@ -63,9 +64,8 @@ layout: default
       </div>
     </div>
     <div class="jscrub-cta">
-      <a class="btn btn-primary" href="{{ site.jscrub_url }}">Explore JScrub</a>
+      <a class="btn btn-primary" href="{{ site.jscrub_url }}">Download JScrub</a>
     </div>
-    <p class="jscrub-fineprint">Regulatory suitability depends on your jurisdiction, controls, and legal interpretation.</p>
   </div>
 </section>
 

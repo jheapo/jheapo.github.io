@@ -16,7 +16,7 @@ docs_url: "#"          # docs live on a separate site; wire this up later
 # Where "Request a demo" / "Contact" go. Swap for a dedicated address if desired.
 contact_email: kirk.pepperdine@gmail.com
 
-# jscrub companion tool. DUMMY pointer — fix once the GitHub org is sorted.
+# JScrub download link. DUMMY placeholder — resolve later.
 jscrub_url: "#"
 
 author: Kirk Pepperdine
