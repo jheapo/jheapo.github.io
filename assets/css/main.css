@@ -243,6 +243,7 @@ code { font-family: var(--mono); }
 .section-brand .ticks li { color: rgba(255,255,255,.85); }
 .section-brand .eyebrow { color: #d7ecee; }
 .section-brand .product-card p:last-child { color: rgba(255,255,255,.82); }
+.section-brand .jscrub-step p:last-child { color: rgba(255,255,255,.82); }
 .section-brand .ticks li::before { background: #fff; color: var(--brand-ink); }
 .section-brand .tour-row + .tour-row { border-top-color: rgba(255,255,255,.18); }
 .section-brand .tour-shot img { border-color: rgba(255,255,255,.22); }
