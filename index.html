@@ -95,29 +95,6 @@ layout: default
   </div>
 </section>
 
-<!-- ================= TOUR ================= -->
-<section class="section section-brand" id="tour">
-  <div class="wrap">
-    <h2 class="section-title">Take the tour</h2>
-    <p class="section-lede">Placeholder screenshots — final shots and copy land here soon.</p>
-
-    {% for row in site.data.tour %}
-    <div class="tour-row {% cycle 'left', 'right' %}" id="{{ row.id }}">
-      <div class="tour-text">
-        <p class="eyebrow">{{ row.eyebrow }}</p>
-        <h3>{{ row.title }}</h3>
-        <ul class="ticks">
-          {% for p in row.points %}<li>{{ p }}</li>{% endfor %}
-        </ul>
-      </div>
-      <div class="tour-shot">
-        <img src="{{ row.image | relative_url }}" alt="{{ row.title }} — screenshot placeholder" loading="lazy">
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</section>
-
 <!-- ================= CTA BANNER ================= -->
 <section class="cta-banner">
   <div class="wrap cta-inner">

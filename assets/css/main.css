@@ -151,6 +151,27 @@ code { font-family: var(--mono); }
   max-width: 60ch; margin: 0 auto 2.8rem;
 }
 
+/* ---------- static pages (About, etc.) ---------- */
+.page-body { max-width: 66ch; margin: 0 auto; }
+.page-body p { color: var(--ink-soft); margin: 0 0 1.2rem; font-size: 1.08rem; line-height: 1.7; }
+.page-body p strong { color: var(--ink); font-weight: 650; }
+.page-body .page-cta { margin-top: 2rem; }
+
+/* ---------- services ---------- */
+.service-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.6rem;
+  max-width: 840px; margin: 0 auto;
+}
+.service-card {
+  background: var(--bg-alt); border-radius: var(--radius); padding: 2rem 1.8rem;
+  display: flex; flex-direction: column;
+}
+.service-card h2 { font-size: 1.45rem; margin: .1rem 0 .6rem; }
+.service-card p { color: var(--ink-soft); margin: 0 0 1.6rem; line-height: 1.6; }
+.service-card .btn { align-self: flex-start; margin-top: auto; }
+.service-note { text-align: center; color: var(--ink-soft); font-size: .9rem; margin: 1.6rem 0 0; }
+.service-img { display: block; width: 100%; max-width: 280px; height: auto; margin: 0 auto 1.3rem; }
+
 /* ---------- products overview ---------- */
 .product-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.8rem;
@@ -282,7 +303,7 @@ code { font-family: var(--mono); }
   .hero-cta { justify-content: center; }
   .hero-art { order: 1; }              /* hippo below the copy, floating on the waterline */
   .hero-art img { max-width: 220px; }
-  .feature-grid, .jscrub-flow, .product-grid { grid-template-columns: 1fr; }
+  .feature-grid, .jscrub-flow, .product-grid, .service-grid { grid-template-columns: 1fr; }
   .tour-row, .tour-row.right .tour-text { grid-template-columns: 1fr; order: initial; }
   .tour-row.right .tour-shot { order: -1; }
   .footer-grid { grid-template-columns: 1fr; }
