@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1821 516">
   <style>.fg{fill:#10233b}@media(prefers-color-scheme:dark){.fg{fill:#eaf4f5}}</style>
-  <svg x="1" y="21" width="62" height="22" viewBox="0 0 1821 516" preserveAspectRatio="xMidYMid meet">
 <g transform="translate(0.000000,516.000000) scale(0.100000,-0.100000)"
 class="fg" stroke="none">
 <path d="M14130 5025 c-8 -9 -30 -15 -60 -15 -30 0 -52 -6 -60 -15 -7 -8 -20
@@ -1363,5 +1362,4 @@ l0 -85 -33 -3 c-20 -2 -41 3 -50 11 -10 8 -26 17 -37 19 -38 7 -29 38 27 95
 <path d="M12810 75 c-7 -8 -34 -15 -63 -17 -92 -5 -57 -23 52 -26 130 -3 142
 0 111 33 -27 28 -80 34 -100 10z"/>
 </g>
-  </svg>
 </svg>

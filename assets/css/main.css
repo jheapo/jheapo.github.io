@@ -196,6 +196,7 @@ code { font-family: var(--mono); }
 
 /* ---------- jscrub ---------- */
 .jscrub-mark { display: block; width: 132px; height: auto; margin: 0 auto 1rem; }
+.jheapo-mark { display: block; width: 210px; height: auto; margin: 0 auto 1.1rem; }
 
 /* ---------- jscrub flow ---------- */
 .jscrub-flow {
