@@ -2,22 +2,18 @@
 layout: default
 ---
 
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <h1>JHeapo</h1>
-      <p class="hero-sub">Unstoppable by any heap</p>
-      <p class="hero-lede">
-        Analyze heaps, big and small, with analytics shaped by years of experience.
-      </p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="mailto:{{ site.contact_email }}?subject=JHeapo%20demo%20request">Request a demo</a>
+<!-- ================= PRODUCTS ================= -->
+<section class="section section-brand" id="products">
+  <div class="wrap">
+    <div class="product-grid">
+      {% for p in site.data.products %}
+      <div class="product-card">
+        <img class="product-icon" src="{{ p.icon | relative_url }}" alt="{{ p.name }}">
+        <h3>{{ p.name }}</h3>
+        <p class="eyebrow">{{ p.eyebrow }}</p>
+        <p>{{ p.body }}</p>
       </div>
-    </div>
-    <div class="hero-art hero-art--wide">
-      <!-- Traced from hippo.png (DoG → potrace). Hero illustration. -->
-      <img src="{{ '/assets/img/hippo-line.svg' | relative_url }}" alt="JHeapo hippo line drawing">
+      {% endfor %}
     </div>
   </div>
 </section>

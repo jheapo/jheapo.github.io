@@ -1,0 +1,16 @@
+# The three products — an overview of how each fits the memory-diagnosis workflow.
+# Each is available as a tool you run yourself and as part of the analysis service.
+- icon: /assets/img/gcsee.png
+  name: GCSee
+  eyebrow: GC Log Analysis
+  body: Let an analysis of your GC logs tell you how to tune your JVM or your application or both.
+
+- icon: /assets/img/jheapo-mark.svg
+  name: JHeapo
+  eyebrow: Deep Java Heap Analytics
+  body: Analyze your heap dump to know where your memory goes.
+
+- icon: /assets/img/jscrub-duke.png
+  name: JScrub
+  eyebrow: Share Java Heap Dumps Safely
+  body: Pseudonymize your heap dump so it's safe to hand to our analysis service — with private data left behind.
