@@ -1,6 +1,10 @@
 <footer class="site-footer">
-  <div class="wrap footer-legal">
-    <span>© {{ 'now' | date: "%Y" }} {{ site.author }}.</span>
-    <a href="{{ '/#top' | relative_url }}">Back to top ↑</a>
+  <div class="wrap footer-bar">
+    <div class="footer-brand">
+      <img class="brand-mark" src="{{ '/assets/img/logo-mark.svg' | relative_url }}" alt="">
+      <span class="brand-name">3 tools, 1 goal</span>
+    </div>
+    <span class="footer-copy">© {{ 'now' | date: "%Y" }} {{ site.author }}.</span>
+    <a class="footer-top" href="{{ '/#top' | relative_url }}">Back to top ↑</a>
   </div>
 </footer>

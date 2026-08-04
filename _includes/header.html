@@ -2,7 +2,7 @@
   <div class="wrap nav">
     <a class="brand" href="{{ '/' | relative_url }}">
       <img class="brand-mark" src="{{ '/assets/img/logo-mark.svg' | relative_url }}" alt="">
-      <span class="brand-name">3 tools, 1 goal</span>
+      {% if page.title %}<span class="brand-name">{{ page.title }}</span>{% endif %}
     </a>
 
     <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
