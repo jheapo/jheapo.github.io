@@ -1,14 +1,15 @@
 {% if site.google_analytics != blank %}
-<!-- Cookie consent + Google Analytics (GA4). GA loads ONLY after explicit consent,
-     and only in production. Decline => nothing is tracked, no cookies set. -->
-<div class="cookie-consent" id="cookie-consent" role="region" aria-label="Cookie consent" hidden>
+<!-- Google Analytics (GA4), opt-out model. GA loads by default in production; a notice
+     lets visitors opt out, which stops tracking and is remembered across visits. -->
+<div class="cookie-consent" id="cookie-consent" role="region" aria-label="Analytics notice" hidden>
   <p class="cookie-consent__text">
-    We'd like to use <strong>Google Analytics</strong> to understand how visitors use
-    this site. It sets cookies only if you accept — decline and nothing is tracked.
+    We use <strong>Google Analytics</strong> to judge the quality of this site and make
+    sure it meets your needs. That is the <strong>only</strong> thing this data is ever
+    used for — nothing else. You can opt out anytime.
   </p>
   <div class="cookie-consent__actions">
-    <button type="button" class="cookie-btn cookie-btn--decline" data-consent="denied">Decline</button>
-    <button type="button" class="cookie-btn cookie-btn--accept" data-consent="granted">Accept</button>
+    <button type="button" class="cookie-btn cookie-btn--decline" data-consent="denied">Opt out</button>
+    <button type="button" class="cookie-btn cookie-btn--accept" data-consent="granted">Got it</button>
   </div>
 </div>
 <script>
@@ -19,7 +20,7 @@
   var banner = document.getElementById('cookie-consent');
 
   function loadGA() {
-    if (!PROD || !ID || window.__gaLoaded) return;   // never off production; load once
+    if (!PROD || !ID || window.__gaLoaded) return;
     window.__gaLoaded = true;
     var s = document.createElement('script');
     s.async = true;
@@ -31,19 +32,20 @@
     gtag('config', ID);
   }
 
-  function decide(choice) {
-    try { localStorage.setItem(KEY, choice); } catch (e) {}
-    if (banner) banner.hidden = true;
-    if (choice === 'granted') loadGA();
-  }
-
   var saved = null;
   try { saved = localStorage.getItem(KEY); } catch (e) {}
 
-  if (saved === 'granted') {
-    loadGA();                              // returning visitor who opted in
-  } else if (saved !== 'denied' && banner) {
-    banner.hidden = false;                 // no decision yet — ask
+  if (saved === 'denied') {
+    window['ga-disable-' + ID] = true;     // opted-out visitor: never load, never track
+  } else {
+    loadGA();                              // collect by default
+    if (saved !== 'granted' && banner) banner.hidden = false;  // first visit — show the notice
+  }
+
+  function decide(choice) {
+    try { localStorage.setItem(KEY, choice); } catch (e) {}
+    if (banner) banner.hidden = true;
+    if (choice === 'denied') window['ga-disable-' + ID] = true; // stop any further hits now
   }
 
   if (banner) {

@@ -328,7 +328,7 @@ code { font-family: var(--mono); }
 }
 
 /* ============================================================
-   Cookie consent banner — bottom card; strict opt-in for GA.
+   Analytics notice — bottom card; opt-out model for GA.
    ============================================================ */
 .cookie-consent {
   position: fixed;
