@@ -156,6 +156,7 @@ code { font-family: var(--mono); }
 .page-body p { color: var(--ink-soft); margin: 0 0 1.2rem; font-size: 1.08rem; line-height: 1.7; }
 .page-body p strong { color: var(--ink); font-weight: 650; }
 .page-body .page-cta { margin-top: 2rem; }
+.about-bio { margin-top: 2.4rem; padding-top: 1.8rem; border-top: 1px solid var(--line); }
 
 /* ---------- services ---------- */
 .service-grid {
