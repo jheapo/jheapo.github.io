@@ -1,10 +1,57 @@
-{% if site.google_analytics != blank and jekyll.environment == "production" %}
-<!-- Google tag (gtag.js) — GA4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
+{% if site.google_analytics != blank %}
+<!-- Cookie consent + Google Analytics (GA4). GA loads ONLY after explicit consent,
+     and only in production. Decline => nothing is tracked, no cookies set. -->
+<div class="cookie-consent" id="cookie-consent" role="region" aria-label="Cookie consent" hidden>
+  <p class="cookie-consent__text">
+    We'd like to use <strong>Google Analytics</strong> to understand how visitors use
+    this site. It sets cookies only if you accept — decline and nothing is tracked.
+  </p>
+  <div class="cookie-consent__actions">
+    <button type="button" class="cookie-btn cookie-btn--decline" data-consent="denied">Decline</button>
+    <button type="button" class="cookie-btn cookie-btn--accept" data-consent="granted">Accept</button>
+  </div>
+</div>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '{{ site.google_analytics }}');
+(function () {
+  var KEY  = 'ga-consent';
+  var ID   = '{{ site.google_analytics }}';
+  var PROD = {% if jekyll.environment == 'production' %}true{% else %}false{% endif %};
+  var banner = document.getElementById('cookie-consent');
+
+  function loadGA() {
+    if (!PROD || !ID || window.__gaLoaded) return;   // never off production; load once
+    window.__gaLoaded = true;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', ID);
+  }
+
+  function decide(choice) {
+    try { localStorage.setItem(KEY, choice); } catch (e) {}
+    if (banner) banner.hidden = true;
+    if (choice === 'granted') loadGA();
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+
+  if (saved === 'granted') {
+    loadGA();                              // returning visitor who opted in
+  } else if (saved !== 'denied' && banner) {
+    banner.hidden = false;                 // no decision yet — ask
+  }
+
+  if (banner) {
+    banner.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-consent]');
+      if (btn) decide(btn.getAttribute('data-consent'));
+    });
+  }
+})();
 </script>
 {% endif %}
