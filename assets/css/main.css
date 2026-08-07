@@ -226,6 +226,7 @@ code { font-family: var(--mono); }
 .jscrub-flow {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.6rem 2.4rem;
 }
+.jscrub-flow.two-up { grid-template-columns: repeat(2, 1fr); max-width: 760px; margin-inline: auto; }
 .jscrub-step h3 { font-size: 1.25rem; margin-bottom: .35rem; }
 .jscrub-step p:last-child { color: var(--ink-soft); margin: 0; }
 .jscrub-cta { text-align: center; margin-top: 3rem; }
@@ -299,7 +300,7 @@ code { font-family: var(--mono); }
   .hero-cta { justify-content: center; }
   .hero-art { order: 1; }              /* hippo below the copy, floating on the waterline */
   .hero-art img { max-width: 220px; }
-  .feature-grid, .jscrub-flow, .product-grid, .service-grid { grid-template-columns: 1fr; }
+  .feature-grid, .jscrub-flow, .jscrub-flow.two-up, .product-grid, .service-grid { grid-template-columns: 1fr; }
   .tour-row, .tour-row.right .tour-text { grid-template-columns: 1fr; order: initial; }
   .tour-row.right .tour-shot { order: -1; }
   .footer-bar { grid-template-columns: 1fr; justify-items: center; gap: .6rem; }
