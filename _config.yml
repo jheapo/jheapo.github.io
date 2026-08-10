@@ -16,8 +16,8 @@ docs_url: "#"          # docs live on a separate site; wire this up later
 # Where "Request a demo" / "Contact" go. Swap for a dedicated address if desired.
 contact_email: kirk.pepperdine@gmail.com
 
-# JScrub download link. DUMMY placeholder — resolve later.
-jscrub_url: "#"
+# JScrub download — GitHub latest release (always tracks the newest version).
+jscrub_url: "https://github.com/jheapo/jscrub/releases/latest"
 # GCSee download link. DUMMY placeholder — resolve later.
 gcsee_url: "#"
 
