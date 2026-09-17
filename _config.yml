@@ -26,7 +26,7 @@ author: Kirk Pepperdine
 # Google Analytics 4 Measurement ID (looks like G-XXXXXXXXXX). Paste yours here
 # once the GA4 web data stream exists. Leave empty to disable. The tag only loads
 # in production (the deployed site), never on the local `jekyll serve` dev server.
-google_analytics: "G-NKDQ13KSG5"
+google_analytics: "G-F35L5EV4LK"
 
 # --- Build --------------------------------------------------------------
 # No external theme gem — the layout is self-contained so this builds the same
