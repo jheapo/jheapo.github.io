@@ -372,3 +372,37 @@ code { font-family: var(--mono); }
 .cookie-btn--accept:hover { background: var(--brand-ink); }
 .cookie-btn--decline { background: transparent; border-color: var(--line); color: var(--ink-soft); }
 .cookie-btn--decline:hover { border-color: var(--ink-soft); color: var(--ink); }
+
+/* ============================================================
+   Purchase / pricing (license page)
+   ============================================================ */
+.price-eyebrow { text-align: center; }
+
+.plan-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+  max-width: 980px; margin: 0 auto; align-items: stretch;
+}
+.plan-card {
+  display: flex; flex-direction: column;
+  padding: 1.8rem 1.5rem;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--bg);
+}
+.plan-card .eyebrow { margin-bottom: .8rem; }
+.plan-price {
+  font-size: 2.1rem; font-weight: 750; letter-spacing: -.025em;
+  color: var(--ink); margin: 0; line-height: 1.1;
+  /* keep the "Let's talk" card's baseline level with the priced cards */
+  min-height: 2.31rem; display: flex; align-items: flex-end;
+}
+.plan-quote { font-size: 1.6rem; }
+.plan-per { color: var(--ink-soft); font-size: .86rem; margin: .3rem 0 0; }
+.plan-card .ticks { margin: 1.4rem 0 1.8rem; }
+.plan-card .ticks li { font-size: .97rem; }
+.plan-btn { margin-top: auto; text-align: center; }
+
+.page-body .small-print { font-size: .97rem; line-height: 1.7; }
+
+@media (max-width: 860px) {
+  .plan-grid { grid-template-columns: 1fr; max-width: 420px; }
+}

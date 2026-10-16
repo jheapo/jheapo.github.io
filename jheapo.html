@@ -1,0 +1,206 @@
+---
+layout: default
+title: JHeapo
+description: >-
+  JHeapo product specification — a streaming, out-of-core Java heap-dump
+  analyzer that works on heaps far larger than the machine's RAM.
+---
+
+<style>
+  /* ---- Spec-sheet styles (scoped to this page; reuse site tokens) ---- */
+  .spec-hero { text-align: center; }
+  .spec-hero .jheapo-mark { margin: 0 auto 1rem; }
+  .spec-hero .section-lede { margin-bottom: 1.6rem; }
+  .spec-wrap { max-width: 880px; margin-inline: auto; }
+  .spec-sub { text-align: center; font-size: 1.35rem; margin: 0 0 .4rem; }
+  .spec-note { text-align: center; color: var(--ink-soft); max-width: 60ch; margin: 0 auto 2rem; }
+
+  .spec-table { width: 100%; overflow-x: auto; }
+  table.spec { width: 100%; border-collapse: collapse; font-size: 1rem; }
+  table.spec th, table.spec td { text-align: left; padding: .85rem 1rem .85rem 0; vertical-align: top; border-bottom: 1px solid var(--line); }
+  table.spec th { color: var(--ink); font-weight: 650; width: 34%; white-space: normal; }
+  table.spec td { color: var(--ink-soft); }
+  table.spec code { font-family: var(--mono); font-size: .92em; color: var(--ink); }
+
+  .spec-views { display: flex; flex-wrap: wrap; gap: .55rem; justify-content: center; margin: 0 auto 1.2rem; }
+  .spec-view { border: 1px solid var(--line); border-radius: 999px; padding: .4rem .95rem; font-size: .92rem; color: var(--ink); background: var(--bg); }
+  .spec-view span { color: var(--ink-soft); font-size: .82em; }
+
+  .spec-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.6rem 2rem; margin-top: 1.4rem; }
+  .spec-card h3 { font-size: 1.08rem; margin: 0 0 .3rem; }
+  .spec-card p { color: var(--ink-soft); margin: 0; font-size: .96rem; }
+
+  .spec-code { font-family: var(--mono); font-size: .9rem; line-height: 1.7; background: color-mix(in srgb, var(--ink) 6%, var(--bg)); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.15rem; overflow-x: auto; color: var(--ink); margin: 1rem 0; }
+  .spec-code .c { color: var(--ink-soft); }
+
+  .spec-cta { text-align: center; margin-top: 2.2rem; }
+  .spec-back { display: block; text-align: center; margin-top: 2.5rem; font-size: .95rem; }
+</style>
+
+<!-- ================= HEADER ================= -->
+<section class="section">
+  <div class="wrap spec-hero">
+    <img class="jheapo-mark" src="{{ '/assets/img/jheapo-mark.svg' | relative_url }}" alt="JHeapo">
+    <p class="eyebrow">Product specification</p>
+    <h1 class="section-title">JHeapo</h1>
+    <p class="section-lede">A streaming, out-of-core Java heap-dump analyzer. Point it at an
+      HPROF dump and see where the memory went — on heaps far larger than the machine's RAM.</p>
+    <p><a class="btn btn-primary" href="mailto:{{ site.contact_email }}?subject=JHeapo%20enquiry">Contact us for a build</a></p>
+  </div>
+</section>
+
+<!-- ================= AT A GLANCE ================= -->
+<section class="section section-alt">
+  <div class="wrap spec-wrap">
+    <h2 class="spec-sub">At a glance</h2>
+    <p class="spec-note">The essentials, in one place.</p>
+    <div class="spec-table">
+      <table class="spec">
+        <tr><th>Category</th><td>Java heap-dump analyzer</td></tr>
+        <tr><th>Analysis model</th><td>Streaming and out-of-core — indexes are built on disk and memory-mapped, so analysis is bounded by disk, not RAM</td></tr>
+        <tr><th>Input</th><td>A standard HPROF binary heap dump (<code>.hprof</code>)</td></tr>
+        <tr><th>Output</th><td>A local web UI, streamed live over Server-Sent Events as each phase completes</td></tr>
+        <tr><th>Heap size handled</th><td>Heaps far larger than the machine's memory; the JVM running JHeapo needs only a modest <code>-Xmx</code></td></tr>
+        <tr><th>Platforms</th><td>Linux x64 · macOS x64 · Windows x64</td></tr>
+        <tr><th>Runtime</th><td>Self-contained — each build bundles its own JDK 25 runtime image</td></tr>
+        <tr><th>Install</th><td>None. Unpack the archive and run — no installer, no admin prompt, nothing registered with the OS</td></tr>
+        <tr><th>Runtime dependencies</th><td>Zero</td></tr>
+        <tr><th>Disk footprint</th><td>Index files are written beside the dump and rebuilt each run (roughly 2.2&nbsp;GB beside a 1.6&nbsp;GB dump)</td></tr>
+        <tr><th>AI assist</th><td>Optional "Ask Claude" panel — active when an Anthropic API key is present, hidden otherwise</td></tr>
+        <tr><th>Licensing</th><td>Commercial, delivered as a private release build — <a href="mailto:{{ site.contact_email }}?subject=JHeapo%20enquiry">contact us</a></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHAT IT ANALYZES ================= -->
+<section class="section">
+  <div class="wrap spec-wrap">
+    <h2 class="spec-sub">What it analyzes</h2>
+    <p class="spec-note">Every view streams into the UI as its results become ready.</p>
+    <div class="spec-views">
+      <span class="spec-view">Overview</span>
+      <span class="spec-view">Histogram</span>
+      <span class="spec-view">Retained heap</span>
+      <span class="spec-view">Dominator tree</span>
+      <span class="spec-view">Threads</span>
+      <span class="spec-view">Leak suspects</span>
+      <span class="spec-view">Duplicate strings</span>
+      <span class="spec-view">Collections</span>
+      <span class="spec-view">Classloaders</span>
+      <span class="spec-view">References</span>
+      <span class="spec-view">Ask Claude <span>(optional)</span></span>
+    </div>
+    <div class="spec-cards">
+      <div class="spec-card">
+        <h3>Built to scale</h3>
+        <p>Crack open your biggest production dump without provisioning a machine large enough to hold it.</p>
+      </div>
+      <div class="spec-card">
+        <h3>Finds the waste</h3>
+        <p>Duplicate strings, under-filled collections, boxed numbers and empty arrays — the fat that quietly fills a heap.</p>
+      </div>
+      <div class="spec-card">
+        <h3>Leak suspects</h3>
+        <p>The biggest retainers, ranked — the first objects to check when memory won't let go.</p>
+      </div>
+      <div class="spec-card">
+        <h3>Retained &amp; dominator</h3>
+        <p>Retained size and the dominator tree show what actually frees when you cut a reference.</p>
+      </div>
+      <div class="spec-card">
+        <h3>Entanglement</h3>
+        <p>A new lens on retention — how entangled your objects are, as a proxy for domain complexity.</p>
+      </div>
+      <div class="spec-card">
+        <h3>Object-model complexity</h3>
+        <p>A number on the sprawl and depth of the types filling your heap.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REQUIREMENTS ================= -->
+<section class="section section-alt">
+  <div class="wrap spec-wrap">
+    <h2 class="spec-sub">Requirements &amp; platforms</h2>
+    <p class="spec-note">A packaged build is self-contained; you only need the toolchain if you build from source.</p>
+    <div class="spec-table">
+      <table class="spec">
+        <tr><th>To run a packaged build</th><td>Nothing to install — the archive carries its own JDK 25 runtime</td></tr>
+        <tr><th>Supported OS</th><td>Linux x64, macOS x64, Windows x64</td></tr>
+        <tr><th>Heap dump</th><td>Any standard HPROF dump — from <code>jcmd &lt;pid&gt; GC.heap_dump</code>, <code>jmap -dump</code>, or <code>-XX:+HeapDumpOnOutOfMemoryError</code></td></tr>
+        <tr><th>Disk space</th><td>Free space on the dump's volume for the index files (about 1.4× the dump size)</td></tr>
+        <tr><th>To build from source</th><td>JDK 25, Maven 3.9+, and <code>node</code> on the PATH (the build gates on the UI's own JavaScript)</td></tr>
+        <tr><th>Persistent API key</th><td>Key storage uses the macOS Keychain; on Linux/Windows supply the key per run instead</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RUNNING IT ================= -->
+<section class="section">
+  <div class="wrap spec-wrap">
+    <h2 class="spec-sub">Running it</h2>
+    <p class="spec-note">Point it at a dump; it opens a browser and starts streaming results.</p>
+
+    <p class="eyebrow" style="text-align:center;">Packaged build</p>
+    <div class="spec-code">
+<span class="c"># Linux</span>
+jheapo/bin/jheapo dump.hprof
+<span class="c"># macOS</span>
+jheapo.app/Contents/MacOS/jheapo dump.hprof
+<span class="c"># Windows</span>
+jheapo\jheapo.exe dump.hprof
+    </div>
+
+    <p class="eyebrow" style="text-align:center;">From the jar</p>
+    <div class="spec-code">
+java -jar jheapo.jar dump.hprof
+    </div>
+
+    <h3 class="spec-sub" style="font-size:1.1rem; margin-top:1.6rem;">Common options</h3>
+    <div class="spec-table">
+      <table class="spec">
+        <tr><th><code>--direct-buffers</code></th><td>Also run the direct-buffer analysis pass (off by default)</td></tr>
+        <tr><th><code>-Djheapo.port=9000</code></th><td>Port to listen on (default 7070)</td></tr>
+        <tr><th><code>-Djheapo.url=http://0.0.0.0:9000</code></th><td>Bind interface and the link shown — e.g. to reach the UI from another machine</td></tr>
+        <tr><th><code>-Djheapo.claude.key=sk-ant-…</code></th><td>Use an Anthropic key for this run only (not stored); enables the Ask Claude panel</td></tr>
+        <tr><th><code>-Djheapo.claude.stub=true</code></th><td>Try the Ask Claude panel offline with canned replies — no key, no network</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DATA HANDLING ================= -->
+<section class="section section-alt">
+  <div class="wrap spec-wrap">
+    <h2 class="spec-sub">Data handling</h2>
+    <div class="spec-cards">
+      <div class="spec-card">
+        <h3>Runs on your machine</h3>
+        <p>The dump is analyzed locally and served to a browser on the same host. Nothing is uploaded.</p>
+      </div>
+      <div class="spec-card">
+        <h3>AI is opt-in</h3>
+        <p>The Ask Claude panel only appears when you supply a key, and an offline stub mode makes no network calls at all.</p>
+      </div>
+      <div class="spec-card">
+        <h3>Share dumps safely</h3>
+        <p>Pair with JScrub to pseudonymize a dump before handing it to a third party for analysis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CTA ================= -->
+<section class="section">
+  <div class="wrap spec-wrap spec-hero">
+    <h2 class="spec-sub">Get a build</h2>
+    <p class="spec-note">JHeapo ships as a private, per-platform release build. Tell us your platform and we'll get you set up.</p>
+    <div class="spec-cta">
+      <a class="btn btn-primary" href="mailto:{{ site.contact_email }}?subject=JHeapo%20enquiry">Contact us</a>
+    </div>
+    <a class="spec-back" href="{{ '/#features' | relative_url }}">&larr; Back to JHeapo overview</a>
+  </div>
+</section>
