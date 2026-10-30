@@ -4,6 +4,13 @@
   {% include analytics.html %}
   <title>{% if page.title %}{{ page.title }} · {{ site.title }}{% else %}{{ site.title }} — {{ site.tagline }}{% endif %}</title>
   <meta name="description" content="{{ page.description | default: site.description }}">
+  {% if page.favicon %}
+  <link rel="icon" href="{{ page.favicon | relative_url }}">
+  {% else %}
   <link rel="icon" href="{{ '/assets/img/logo-mark.svg' | relative_url }}" type="image/svg+xml">
+  {% endif %}
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+  {% for stylesheet in page.stylesheets %}
+  <link rel="stylesheet" href="{{ stylesheet | relative_url }}">
+  {% endfor %}
 </head>

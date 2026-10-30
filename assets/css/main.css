@@ -406,3 +406,7 @@ code { font-family: var(--mono); }
 @media (max-width: 860px) {
   .plan-grid { grid-template-columns: 1fr; max-width: 420px; }
 }
+
+/* JThread (/jthread/): the thread dump analyser fills the window below the sticky header;
+   the footer follows below the fold. */
+.jthread-page .ts-app { height: calc(100vh - 65px); }

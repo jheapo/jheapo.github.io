@@ -1,0 +1,45 @@
+---
+layout: default
+title: JThread
+description: Analyse Java thread dumps in your browser. The files are read in the page and never uploaded.
+favicon: /jthread/images/favicon-32.png
+stylesheets:
+  - /jthread/css/threadsee.css
+---
+<!-- Written by bin/publish.sh in threadsee from its index.html: edit it there, not here. -->
+<div class="jthread-page">
+{% raw %}
+<!-- jthread:app begin: bin/publish.sh copies the lines from here to "jthread:app end" into the jheapo website -->
+<div class="ts-app" id="threadsee">
+    <header class="ts-toolbar">
+        <span class="ts-brand"><img class="ts-brand-logo" src="images/duke-head.png" alt="" width="28" height="28">JThread</span>
+        <label class="ts-button ts-button-primary" title="Open one or more files containing thread dumps; files opened together are read as one series">
+            Open thread dumps&hellip;
+            <input type="file" id="ts-file" class="ts-file-input" multiple>
+        </label>
+        <label class="ts-button ts-button-disabled" id="ts-add" title="Add files to the selected set; you can also drop files on a set in the tree">
+            Add files&hellip;
+            <input type="file" id="ts-add-file" class="ts-file-input" multiple disabled>
+        </label>
+        <button type="button" class="ts-button" id="ts-close" disabled title="Close the file of the selected dump, or the selected set; Cmd-click or Ctrl-click dumps to close several files">Close</button>
+        <button type="button" class="ts-button" id="ts-categories" title="Define your own categories of threads">Categories&hellip;</button>
+        <span class="ts-toolbar-note">Or drop files anywhere on the page. Files opened together are read as one series. Nothing is uploaded.</span>
+    </header>
+    <div class="ts-main" id="ts-main">
+        <nav class="ts-tree" id="ts-tree" aria-label="Thread dumps"></nav>
+        <div class="ts-splitter ts-splitter-vertical" id="ts-split-vertical" role="separator" aria-orientation="vertical"></div>
+        <section class="ts-content" id="ts-content" aria-live="polite"></section>
+        <div class="ts-splitter ts-splitter-horizontal" id="ts-split-horizontal" role="separator" aria-orientation="horizontal"></div>
+        <section class="ts-detail" id="ts-detail"></section>
+    </div>
+    <footer class="ts-status">
+        <span>JThread 0.1 &middot; derived from <a href="https://github.com/irockel/tda" rel="noopener">TDA</a> &middot; LGPL-2.1</span>
+        <span id="ts-status"></span>
+    </footer>
+    <div class="ts-drop-overlay" id="ts-drop">Drop the thread dump files to analyse them</div>
+</div>
+<script src="js/model.js"></script>
+<script src="js/view.js"></script>
+<!-- jthread:app end -->
+{% endraw %}
+</div>
