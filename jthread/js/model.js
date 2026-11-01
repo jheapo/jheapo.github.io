@@ -1294,7 +1294,6 @@
             this.addMonitorsWithoutLockingThreadHint(hints);
             this.addUnownedWaitingHint(hints);
             this.addStuckCarrierHint(hints);
-            this.addSmrHint(hints);
             return hints;
         }
 
@@ -1349,11 +1348,93 @@
             }
         }
 
-        addSmrHint(hints) {
-            const unresolved = this.dump.unresolvedSmrAddresses();
-            if (unresolved.length > 0) {
-                hints.push({ severity: 'warning', target: 'dump',
-                    text: unresolved.length + ' address(es) in the Threads class SMR info match no thread in the dump. This might indicate threads that were not properly removed from the JVM\'s thread list.' });
+    }
+
+    /** A ready-made category: a name, a rule, and what the rule finds. */
+    class CategoryExample {
+        constructor(name, rule, purpose) {
+            this.name = name;
+            this.rule = rule;
+            this.purpose = purpose;
+            Object.freeze(this);
+        }
+
+        category() {
+            return new CustomCategory(this.name, this.rule);
+        }
+    }
+
+    /** The example categories offered in the categories editor, as starting points for your own. */
+    class CategoryExamples {
+        list() {
+            return [
+                new CategoryExample('Thread pool threads',
+                    'name ~ /^(pool-\\d+-thread-|ForkJoinPool|http-nio-|https-jsse-nio-|qtp\\d+|.*-exec-\\d+)/',
+                    'Threads named by the usual pools: ThreadPoolExecutor, ForkJoinPool, Tomcat, Jetty and Spring.'),
+                new CategoryExample('Waiting on the database',
+                    'frame ~ /java\\.sql\\.|jdbc/i and top ~ /socketRead|NioSocketImpl|SocketDispatcher\\.read/',
+                    'Threads in a JDBC call that are reading from the socket: waiting for the database, not working.'),
+                new CategoryExample('Contention in logging',
+                    'frame ~ /org\\.apache\\.logging\\.log4j|ch\\.qos\\.logback|java\\.util\\.logging/ and lock ~ /waiting to lock|parking to wait/',
+                    'Threads inside a logging framework that are blocked on a lock, a common source of hidden serialisation.'),
+                new CategoryExample('Class loading under a lock',
+                    'frame ~ /ClassLoader\\.loadClass/ and lock ~ /waiting to lock/',
+                    'Threads queued behind class loading, as at start-up or with lazily initialised singletons.')
+            ];
+        }
+    }
+
+    /**
+     * What JThread flags as a concern in one dump, so a client can paint it: the threads in a
+     * deadlock, the thread holding a congested monitor (not the threads waiting for it), a carrier
+     * thread stuck in application code, the congested monitors, and the categories a critical or
+     * warning hint points at. Long running threads are a comparison of dumps and not part of this.
+     */
+    class Concerns {
+        constructor(dump, monitors) {
+            this.threads = new Set();
+            this.monitors = new Set();
+            this.categories = new Set();
+            this.addDeadlocks(dump, new Deadlocks(dump, monitors).list());
+            this.addCongestedMonitors(monitors);
+            this.addStuckCarriers(dump);
+            this.addHintTargets(new DumpHints(dump).list());
+        }
+
+        addDeadlocks(dump, reports) {
+            for (const report of reports) {
+                this.categories.add('deadlocks');
+                for (const thread of dump.threads) {
+                    if (report.threadNames.indexOf(thread.name) >= 0) {
+                        this.threads.add(thread);
+                    }
+                }
+            }
+        }
+
+        addCongestedMonitors(monitors) {
+            for (const monitor of monitors.all()) {
+                if (monitor.isCongested()) {
+                    this.monitors.add(monitor);
+                    this.categories.add(monitor.hasLockingThread() ? 'monitors' : 'monitors-without-lock');
+                    monitor.lockingThreads().forEach((thread) => this.threads.add(thread));
+                }
+            }
+        }
+
+        addStuckCarriers(dump) {
+            for (const thread of dump.threads) {
+                if (thread.carrierStuckInApplicationCode) {
+                    this.threads.add(thread);
+                }
+            }
+        }
+
+        addHintTargets(hints) {
+            for (const hint of hints) {
+                if (hint.severity === 'critical' || hint.severity === 'warning') {
+                    this.categories.add(hint.target);
+                }
             }
         }
     }
@@ -1430,6 +1511,8 @@
         MonitorIndex: MonitorIndex,
         ThreadCategories: ThreadCategories,
         DumpHints: DumpHints,
+        Concerns: Concerns,
+        CategoryExamples: CategoryExamples,
         LongRunningThreads: LongRunningThreads
     };
 

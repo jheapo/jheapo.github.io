@@ -30,6 +30,7 @@
     --ts-state-new: #6f55c9;
     --ts-state-other: #7c858e;
     --ts-brand: #0e7c86;   /* the jheapo website's teal */
+    --ts-brand-text: #0e7c86;
     --ts-tree-width: 34%;
     --ts-top-height: 48%;
 
@@ -45,6 +46,7 @@
 
 @media (prefers-color-scheme: dark) {
     .ts-app {
+        --ts-brand-text: #2ec2cf;   /* the jheapo website's lighter teal for dark backgrounds */
         --ts-bg: #16181b;
         --ts-panel: #1e2125;
         --ts-border: #353a40;
@@ -90,6 +92,7 @@ body:has(> .ts-app) {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    color: var(--ts-brand-text);
     font-weight: 700;
     font-size: 15px;
     margin-right: 8px;
@@ -103,11 +106,6 @@ body:has(> .ts-app) {
     padding: 3px;
     border-radius: 7px;
     background: var(--ts-brand);
-}
-
-.ts-toolbar-note {
-    color: var(--ts-muted);
-    font-size: 12px;
 }
 
 .ts-button {
@@ -128,11 +126,6 @@ body:has(> .ts-app) {
 }
 
 .ts-button:disabled {
-    color: var(--ts-faint);
-    cursor: default;
-}
-
-.ts-button-disabled {
     color: var(--ts-faint);
     cursor: default;
 }
@@ -190,6 +183,40 @@ body:has(> .ts-app) {
     grid-area: tree;
     overflow: auto;
     padding: 4px 0;
+}
+
+/* The empty tree is a place to drop files, or click to choose them. */
+.ts-drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    height: calc(100% - 16px);
+    min-height: 140px;
+    margin: 4px 12px 12px;
+    padding: 16px;
+    border: 2px dashed var(--ts-border);
+    border-radius: 8px;
+    color: var(--ts-muted);
+    text-align: center;
+    cursor: pointer;
+}
+
+.ts-drop-zone:hover,
+.ts-app.ts-dragging .ts-drop-zone {
+    border-color: var(--ts-accent);
+    color: var(--ts-accent);
+}
+
+.ts-drop-zone-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ts-drop-zone-hint {
+    font-size: 12px;
 }
 
 .ts-content {
@@ -277,15 +304,6 @@ body:has(> .ts-app) {
     flex: none;
     text-align: center;
     font-size: 12px;
-}
-
-.ts-node-critical .ts-label {
-    color: var(--ts-critical);
-    font-weight: 600;
-}
-
-.ts-node[aria-selected="true"].ts-node-critical .ts-label {
-    color: inherit;
 }
 
 /* Tables */
@@ -383,8 +401,52 @@ body:has(> .ts-app) {
     outline-offset: -2px;
 }
 
-.ts-row-alert td:first-child {
+/* A row JThread flags as a concern is painted red; a virtual thread is set in italics. */
+.ts-row-concern td {
+    color: var(--ts-critical);
+}
+
+.ts-row-concern td:first-child {
     box-shadow: inset 3px 0 0 var(--ts-critical);
+}
+
+.ts-table tbody tr[aria-selected="true"].ts-row-concern td {
+    color: var(--ts-selected-text);
+}
+
+.ts-row-virtual td {
+    font-style: italic;
+}
+
+/* Tree table: a monitor opens into its groups of threads, a group into its threads */
+.ts-table .ts-twisty {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.ts-table tr[aria-level="2"] td:first-child {
+    padding-left: 26px;
+}
+
+.ts-table tr[aria-level="3"] td:first-child {
+    padding-left: 46px;
+}
+
+.ts-row-child[aria-level="2"] .ts-row-label {
+    font-weight: 600;
+}
+
+.ts-row-note {
+    margin-left: 12px;
+    color: var(--ts-muted);
+    font-family: var(--ts-mono);
+    font-size: 12px;
+}
+
+.ts-row-concern .ts-row-note,
+.ts-table tbody tr[aria-selected="true"] .ts-row-note,
+.ts-table tbody tr[aria-selected="true"] .ts-twisty {
+    color: inherit;
 }
 
 /* Detail pane: a thread, a monitor, a deadlock */
@@ -531,8 +593,8 @@ body:has(> .ts-app) {
 }
 
 .ts-hint-warning {
-    border-left-color: var(--ts-warning);
-    background: var(--ts-warning-bg);
+    border-left-color: var(--ts-critical);
+    background: var(--ts-critical-bg);
 }
 
 .ts-hint-critical {
@@ -619,10 +681,6 @@ body:has(> .ts-app) {
     .ts-splitter-vertical {
         display: none;
     }
-
-    .ts-toolbar-note {
-        width: 100%;
-    }
 }
 
 /* Custom categories editor */
@@ -639,6 +697,15 @@ body:has(> .ts-app) {
     gap: 4px 12px;
     padding: 6px 0;
     border-bottom: 1px solid var(--ts-border);
+}
+
+.ts-examples {
+    margin-top: 24px;
+}
+
+.ts-examples .ts-category-list li {
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .ts-rule-text,

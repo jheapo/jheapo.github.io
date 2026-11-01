@@ -9,7 +9,7 @@
     'use strict';
 
     /** Raised by one every time a changed view.js is delivered; shown in the status bar to tell which copy is loaded. */
-    const VIEW_BUILD = 4;
+    const VIEW_BUILD = 13;
 
     const model = root.ThreadSee;
     const JDK_FRAME = /^\s*at (java|javax|jdk|sun|com\.sun)\./;
@@ -63,6 +63,23 @@
             this.monitors = new model.MonitorIndex(dump);
             this.deadlocks = new model.Deadlocks(dump, this.monitors).list();
             this.hints = new model.DumpHints(dump).list();
+            this.concerns = new model.Concerns(dump, this.monitors);
+        }
+
+        hasConcerns() {
+            return this.concerns.threads.size > 0 || this.concerns.monitors.size > 0 || this.concerns.categories.size > 0;
+        }
+
+        /** Threads of concern are painted red, virtual threads in italics. */
+        threadClasses(thread) {
+            const classes = [];
+            if (this.concerns.threads.has(thread)) {
+                classes.push('ts-row-concern');
+            }
+            if (thread.isVirtual) {
+                classes.push('ts-row-virtual');
+            }
+            return classes;
         }
 
         threadNamed(name) {
@@ -160,9 +177,7 @@
             this.dom.clear(this.body);
             this.rowElements.clear();
             const rows = this.visibleRows();
-            for (const row of rows) {
-                this.body.appendChild(this.rowElement(row));
-            }
+            this.appendRows(rows);
             this.counter.textContent = rows.length === this.rows.length
                 ? plural(rows.length, this.options.noun)
                 : rows.length + ' of ' + plural(this.rows.length, this.options.noun);
@@ -171,11 +186,17 @@
             }
         }
 
+        appendRows(rows) {
+            for (const row of rows) {
+                this.body.appendChild(this.rowElement(row));
+            }
+        }
+
         rowElement(row) {
             const element = this.dom.el('tr');
             element.tabIndex = -1;
-            if (this.options.isAlert && this.options.isAlert(row)) {
-                element.classList.add('ts-row-alert');
+            if (this.options.rowClasses) {
+                this.options.rowClasses(row).forEach(function (name) { element.classList.add(name); });
             }
             for (const column of this.columns) {
                 const value = column.value(row);
@@ -188,6 +209,16 @@
         }
 
         select(row) {
+            this.highlight(row);
+            this.options.onSelect(row);
+        }
+
+        /** Selects the row a link in the detail pane points at. */
+        reveal(row) {
+            this.select(row);
+        }
+
+        highlight(row) {
             if (this.selected !== null && this.rowElements.has(this.selected)) {
                 this.rowElements.get(this.selected).removeAttribute('aria-selected');
             }
@@ -198,7 +229,11 @@
                 element.focus({ preventScroll: true });
                 element.scrollIntoView({ block: 'nearest', inline: 'start' });
             }
-            this.options.onSelect(row);
+        }
+
+        /** The rows the arrow keys move through, in display order. */
+        rowsInOrder() {
+            return this.visibleRows();
         }
 
         moveSelection(event) {
@@ -206,11 +241,217 @@
                 return;
             }
             event.preventDefault();
-            const rows = this.visibleRows();
+            const rows = this.rowsInOrder();
             const index = rows.indexOf(this.selected) + (event.key === 'ArrowDown' ? 1 : -1);
             if (index >= 0 && index < rows.length) {
                 this.select(rows[index]);
             }
+        }
+    }
+
+    /**
+     * A DataTable whose top-level rows open into child rows, as a monitor opens into the groups of
+     * threads holding it, waiting to lock it and waiting on it, and each group into its threads.
+     * The filter and sorting apply to the top-level rows; children stay under their row. The
+     * children of a top-level row come from options.children(row); a child row is an object with
+     * label(), note(), rowClasses(), children(), show() and startsOpen.
+     */
+    class TreeTable extends DataTable {
+        constructor(dom, columns, rows, options) {
+            super(dom, columns, rows, options);
+            this.open = new Set();
+            this.childRows = new Map();
+            this.parents = new Map();
+            this.depths = new Map();
+            this.shown = [];
+        }
+
+        render(container) {
+            super.render(container);
+            this.table.setAttribute('role', 'treegrid');
+        }
+
+        appendRows(rows) {
+            this.shown = [];
+            for (const row of rows) {
+                this.appendBranch(row, 0);
+            }
+        }
+
+        appendBranch(row, depth) {
+            this.depths.set(row, depth);
+            this.shown.push(row);
+            const children = this.childrenOf(row, depth);
+            const element = depth === 0 ? this.rowElement(row) : this.childElement(row);
+            element.setAttribute('aria-level', String(depth + 1));
+            element.firstChild.insertBefore(this.twisty(row, children.length > 0), element.firstChild.firstChild);
+            if (children.length > 0) {
+                element.setAttribute('aria-expanded', String(this.open.has(row)));
+                element.addEventListener('dblclick', () => this.toggle(row));
+            }
+            this.body.appendChild(element);
+            if (this.open.has(row)) {
+                for (const child of children) {
+                    this.appendBranch(child, depth + 1);
+                }
+            }
+        }
+
+        childrenOf(row, depth) {
+            if (!this.childRows.has(row)) {
+                const children = depth === 0 ? this.options.children(row) : row.children();
+                for (const child of children) {
+                    this.parents.set(child, row);
+                    if (child.startsOpen) {
+                        this.open.add(child);
+                    }
+                }
+                this.childRows.set(row, children);
+            }
+            return this.childRows.get(row);
+        }
+
+        childElement(child) {
+            const element = this.dom.el('tr', 'ts-row-child');
+            child.rowClasses().forEach(function (name) { element.classList.add(name); });
+            element.tabIndex = -1;
+            const cell = this.dom.el('td');
+            cell.colSpan = this.columns.length;
+            cell.appendChild(this.dom.el('span', 'ts-row-label', child.label()));
+            const note = child.note();
+            if (note !== '') {
+                cell.appendChild(this.dom.el('span', 'ts-row-note', note));
+            }
+            element.appendChild(cell);
+            element.addEventListener('click', () => this.select(child));
+            this.rowElements.set(child, element);
+            return element;
+        }
+
+        twisty(row, hasChildren) {
+            const twisty = this.dom.el('span', 'ts-twisty', hasChildren ? (this.open.has(row) ? '▾' : '▸') : '');
+            if (hasChildren) {
+                twisty.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    this.toggle(row);
+                });
+            }
+            return twisty;
+        }
+
+        toggle(row) {
+            if (this.open.has(row)) {
+                this.open.delete(row);
+            } else {
+                this.open.add(row);
+            }
+            this.fill();
+            if (this.selected !== null && !this.rowElements.has(this.selected)) {
+                this.select(row);
+            } else if (this.selected !== null) {
+                this.highlight(this.selected);
+            }
+        }
+
+        select(row) {
+            this.highlight(row);
+            if (this.depths.get(row) === 0) {
+                this.options.onSelect(row);
+            } else {
+                row.show();
+            }
+        }
+
+        /** Opens the row and selects it, so a monitor followed from a stack shows its threads. */
+        reveal(row) {
+            this.open.add(row);
+            this.fill();
+            this.select(row);
+        }
+
+        rowsInOrder() {
+            return this.shown;
+        }
+
+        moveSelection(event) {
+            if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+                super.moveSelection(event);
+                return;
+            }
+            event.preventDefault();
+            const row = this.selected;
+            if (row === null) {
+                return;
+            }
+            const hasChildren = this.childrenOf(row, this.depths.get(row)).length > 0;
+            if (event.key === 'ArrowRight' && hasChildren && !this.open.has(row)) {
+                this.toggle(row);
+            } else if (event.key === 'ArrowLeft' && this.open.has(row)) {
+                this.toggle(row);
+            } else if (event.key === 'ArrowLeft' && this.parents.has(row)) {
+                this.select(this.parents.get(row));
+            }
+        }
+    }
+
+    /** The threads that stand in one relation to a monitor: holding it, waiting to lock it or waiting on it. */
+    class MonitorThreads {
+        constructor(title, threads, detail, analysis) {
+            this.title = title;
+            this.threads = threads;
+            this.detail = detail;
+            this.analysis = analysis;
+            this.startsOpen = true;
+        }
+
+        label() {
+            return this.title + ' (' + this.threads.length + ')';
+        }
+
+        note() {
+            return '';
+        }
+
+        rowClasses() {
+            return [];
+        }
+
+        children() {
+            return this.threads.map((thread) => new MonitorThread(thread, this.detail, this.analysis));
+        }
+
+        show() {
+            this.detail.showMessage('Select a thread to see its stack.');
+        }
+    }
+
+    /** One thread under a monitor, shown with the frame it is in. */
+    class MonitorThread {
+        constructor(thread, detail, analysis) {
+            this.thread = thread;
+            this.detail = detail;
+            this.analysis = analysis;
+            this.startsOpen = false;
+        }
+
+        label() {
+            return this.thread.name;
+        }
+
+        note() {
+            return this.thread.frames.length > 0 ? this.thread.frames[0] : (this.thread.threadState || '');
+        }
+
+        rowClasses() {
+            return this.analysis.threadClasses(this.thread);
+        }
+
+        children() {
+            return [];
+        }
+
+        show() {
+            this.detail.showThread(this.thread, this.analysis);
         }
     }
 
@@ -289,9 +530,11 @@
         showMonitor(monitor, analysis) {
             this.dom.clear(this.container);
             this.container.appendChild(this.dom.el('h2', null, 'Monitor ' + monitor.label()));
-            this.threadList('Locked by', monitor.lockingThreads(), analysis, this.noHolderText(monitor, analysis));
-            this.threadList('Waiting to lock', monitor.waiters, analysis, null);
-            this.threadList('Waiting on (Object.wait() or parked)', monitor.sleepers, analysis, null);
+            this.container.appendChild(this.dom.el('p', 'ts-muted', plural(monitor.waiters.length, 'thread') + ' waiting to lock it, '
+                + monitor.sleepers.length + ' waiting on it (Object.wait() or parked).'));
+            if (monitor.lockingThreads().length === 0) {
+                this.container.appendChild(this.dom.el('p', null, this.noHolderText(monitor, analysis)));
+            }
             for (const holder of monitor.lockingThreads()) {
                 this.container.appendChild(this.dom.el('h3', null, 'Stack of ' + holder.name));
                 this.container.appendChild(this.threadText(holder, analysis));
@@ -300,32 +543,12 @@
 
         noHolderText(monitor, analysis) {
             if (monitor.waiters.length === 0) {
-                return 'No thread holds it. The threads below wait on it for an event (a notify, a signal, a count-down or a result), not to acquire it.';
+                return 'No thread holds it. The threads under it in the table wait on it for an event (a notify, a signal, a count-down or a result), not to acquire it.';
             }
             if (analysis.dump.format === model.DumpFormat.JCMD_TEXT) {
                 return 'No thread holds it in this dump. It might be held by a VM thread, or it is a lock whose owner the JVM did not print.';
             }
             return 'No thread holds this monitor. It might be held by a VM thread, or it is a java.util.concurrent lock in a dump taken without lock information (jstack -l).';
-        }
-
-        threadList(title, threads, analysis, emptyText) {
-            if (threads.length === 0 && emptyText === null) {
-                return;
-            }
-            this.container.appendChild(this.dom.el('h3', null, title + ' (' + threads.length + ')'));
-            if (threads.length === 0) {
-                this.container.appendChild(this.dom.el('p', 'ts-muted', emptyText));
-                return;
-            }
-            const list = this.dom.el('ul');
-            for (const thread of threads) {
-                const item = this.dom.el('li');
-                item.appendChild(this.dom.link(thread.name, () => this.app.showThread(analysis, thread)));
-                const frame = thread.frames.length > 0 ? thread.frames[0] : thread.threadState;
-                item.appendChild(this.dom.el('span', 'ts-muted', '  ' + frame));
-                list.appendChild(item);
-            }
-            this.container.appendChild(list);
         }
 
         showMatchingThreads(threads, analysis) {
@@ -404,7 +627,6 @@
             this.show = show;
             this.children = [];
             this.expanded = (options && options.expanded) || false;
-            this.critical = (options && options.critical) || false;
             this.key = (options && options.key) || null;
             this.closable = (options && options.closable) || false;
             this.parent = null;
@@ -424,10 +646,11 @@
 
     /** Draws the tree and keeps one node selected. */
     class TreeView {
-        constructor(dom, container, onSelect) {
+        constructor(dom, container, onSelect, emptyState) {
             this.dom = dom;
             this.container = container;
             this.onSelect = onSelect;
+            this.emptyState = emptyState;
             this.roots = [];
             this.selected = null;
             this.marked = new Set();
@@ -486,6 +709,10 @@
 
         render() {
             this.dom.clear(this.container);
+            if (this.roots.length === 0) {
+                this.container.appendChild(this.emptyState);
+                return;
+            }
             const list = this.dom.el('ul');
             for (const node of this.roots) {
                 list.appendChild(this.item(node));
@@ -495,7 +722,7 @@
 
         item(node) {
             const item = this.dom.el('li');
-            const row = this.dom.el('div', 'ts-node' + (node.critical ? ' ts-node-critical' : ''));
+            const row = this.dom.el('div', 'ts-node');
             row.setAttribute('role', 'treeitem');
             row.tabIndex = node === this.selected ? 0 : -1;
             row.setAttribute('aria-selected', node === this.selected || this.marked.has(node) ? 'true' : 'false');
@@ -599,11 +826,20 @@
             this.status = document.getElementById('ts-status');
             this.closeButton = document.getElementById('ts-close');
             this.detail = new DetailView(this.dom, document.getElementById('ts-detail'), this);
-            this.tree = new TreeView(this.dom, document.getElementById('ts-tree'), (node) => this.nodeSelected(node));
+            this.tree = new TreeView(this.dom, document.getElementById('ts-tree'), (node) => this.nodeSelected(node), this.dropZone());
             this.analyses = new Map();
             this.currentTable = null;
             this.categories = new CategoryStore(root.localStorage);
             this.previewAnalysis = null;
+        }
+
+        /** What the tree shows while nothing is open: a place to drop files, which also opens the file chooser. */
+        dropZone() {
+            const zone = this.dom.el('label', 'ts-drop-zone');
+            zone.htmlFor = 'ts-file';
+            zone.appendChild(this.dom.el('span', 'ts-drop-zone-title', 'Drop thread dump files here'));
+            zone.appendChild(this.dom.el('span', 'ts-drop-zone-hint', 'or click to choose them'));
+            return zone;
         }
 
         start() {
@@ -612,6 +848,7 @@
             this.wireDragAndDrop();
             new SplitterDrag(this.appElement, this.document.getElementById('ts-main')).wire(
                 this.document.getElementById('ts-split-vertical'), this.document.getElementById('ts-split-horizontal'));
+            this.tree.render();
             this.showWelcome();
         }
 
@@ -624,13 +861,6 @@
                 input.value = '';
             });
             this.closeButton.addEventListener('click', () => this.closeSelection());
-            const add = this.document.getElementById('ts-add-file');
-            add.addEventListener('change', () => {
-                if (add.files.length > 0 && this.tree.selected !== null) {
-                    this.addFiles(Array.from(add.files), this.tree.selected.root());
-                }
-                add.value = '';
-            });
             this.document.getElementById('ts-categories').addEventListener('click', () => this.showCategoryEditor());
         }
 
@@ -710,7 +940,6 @@
             this.tree.addRoot(rootNode);
             this.selectFirstDump(rootNode);
             this.closeButton.disabled = false;
-            this.enableAdding(true);
         }
 
         /** Replaces a set with one read from the given sources; a set left with no dump is closed. */
@@ -739,11 +968,6 @@
             }
         }
 
-        enableAdding(enabled) {
-            this.document.getElementById('ts-add-file').disabled = !enabled;
-            this.document.getElementById('ts-add').classList.toggle('ts-button-disabled', !enabled);
-        }
-
         logLabel(log) {
             return log.sources.length === 1 ? log.name : log.sources.length + ' files: ' + log.name;
         }
@@ -770,31 +994,32 @@
         dumpNode(log, dump, expanded) {
             const analysis = this.analysisOf(log, dump);
             const categories = analysis.categories;
-            const node = new TreeNode(dump.title(), '▤', () => this.showOverview(analysis),
-                { expanded: expanded, critical: analysis.deadlocks.length > 0, closable: true });
-            const add = (key, label, icon, count, show, critical) => {
-                if (key === 'threads' || count > 0) {
-                    node.add(new TreeNode(label, icon, show, { key: key, critical: critical }));
+            const node = new TreeNode(dump.title(), '▤', () => this.showOverview(analysis), { expanded: expanded, closable: true });
+            const add = (key, label, icon, rows, show) => {
+                if (key === 'threads' || rows.length > 0) {
+                    node.add(new TreeNode(label, icon, show, { key: key }));
                 }
             };
-            add('threads', 'Threads (' + categories.all.length + ' Threads overall)', '☰', 1,
-                () => this.showThreads(analysis, categories.all, 'Threads'), false);
-            add('active', 'Active Threads (' + categories.active.length + ' Threads active)', '\u25B6', categories.active.length,
-                () => this.showThreads(analysis, categories.active, 'Active Threads'), false);
-            add('deadlocks', 'Deadlocks (' + plural(analysis.deadlocks.length, 'deadlock') + ')', '⚠', analysis.deadlocks.length,
-                () => this.showDeadlocks(analysis), true);
-            add('waiting', 'Threads waiting for Monitors (' + categories.waiting.length + ' Threads waiting)', '⧖', categories.waiting.length,
-                () => this.showThreads(analysis, categories.waiting, 'Threads waiting for Monitors'), false);
-            add('sleeping', 'Threads sleeping on Monitors (' + categories.sleeping.length + ' Threads sleeping)', '☾', categories.sleeping.length,
-                () => this.showThreads(analysis, categories.sleeping, 'Threads sleeping on Monitors'), false);
-            add('locking', 'Threads locking Monitors (' + categories.locking.length + ' Threads locking)', '⚿', categories.locking.length,
-                () => this.showThreads(analysis, categories.locking, 'Threads locking Monitors'), false);
-            add('virtual', 'Virtual Threads (' + categories.virtual.length + ' Virtual Threads)', '☲', categories.virtual.length,
-                () => this.showThreads(analysis, categories.virtual, 'Virtual Threads'), false);
-            add('monitors', 'Monitors (' + analysis.monitors.all().length + ' Monitors)', '▣', analysis.monitors.all().length,
-                () => this.showMonitors(analysis, analysis.monitors.all()), false);
-            add('monitors-without-lock', 'Monitors without locking thread (' + analysis.monitors.withoutLockingThread().length + ' Monitors)', '▢',
-                analysis.monitors.withoutLockingThread().length, () => this.showMonitors(analysis, analysis.monitors.withoutLockingThread()), false);
+            const monitors = analysis.monitors.all();
+            const unowned = analysis.monitors.withoutLockingThread();
+            add('threads', 'Threads (' + categories.all.length + ' Threads overall)', '☰', categories.all,
+                () => this.showThreads(analysis, categories.all, 'Threads'));
+            add('active', 'Active Threads (' + categories.active.length + ' Threads active)', '\u25B6', categories.active,
+                () => this.showThreads(analysis, categories.active, 'Active Threads'));
+            add('deadlocks', 'Deadlocks (' + plural(analysis.deadlocks.length, 'deadlock') + ')', '⚠', analysis.deadlocks,
+                () => this.showDeadlocks(analysis));
+            add('waiting', 'Threads waiting for Monitors (' + categories.waiting.length + ' Threads waiting)', '⧖', categories.waiting,
+                () => this.showThreads(analysis, categories.waiting, 'Threads waiting for Monitors'));
+            add('sleeping', 'Threads sleeping on Monitors (' + categories.sleeping.length + ' Threads sleeping)', '☾', categories.sleeping,
+                () => this.showThreads(analysis, categories.sleeping, 'Threads sleeping on Monitors'));
+            add('locking', 'Threads locking Monitors (' + categories.locking.length + ' Threads locking)', '⚿', categories.locking,
+                () => this.showThreads(analysis, categories.locking, 'Threads locking Monitors'));
+            add('virtual', 'Virtual Threads (' + categories.virtual.length + ' Virtual Threads)', '☲', categories.virtual,
+                () => this.showThreads(analysis, categories.virtual, 'Virtual Threads'));
+            add('monitors', 'Monitors (' + monitors.length + ' Monitors)', '▣', monitors,
+                () => this.showMonitors(analysis, monitors));
+            add('monitors-without-lock', 'Monitors without locking thread (' + unowned.length + ' Monitors)', '▢', unowned,
+                () => this.showMonitors(analysis, unowned));
             for (const category of this.categories.list()) {
                 const threads = category.select(analysis.dump.threads);
                 node.add(new TreeNode(category.name + ' (' + plural(threads.length, 'Thread') + ')', '\u25C7',
@@ -884,7 +1109,7 @@
             }
             this.tree.select(node);
             if (row !== undefined && this.currentTable !== null) {
-                this.currentTable.select(row);
+                this.currentTable.reveal(row);
             }
         }
 
@@ -902,9 +1127,9 @@
             const pane = this.dom.el('div', 'ts-welcome-text');
             welcome.appendChild(pane);
             pane.appendChild(this.dom.el('h1', null, 'Analyse Java thread dumps in your browser'));
-            pane.appendChild(this.dom.el('p', null, 'Open one or more files that contain HotSpot thread dumps from JDK 8 or later: the output of jstack, jcmd <pid> Thread.print or kill -3 written to the JVM\'s log, or the file written by jcmd <pid> Thread.dump_to_file.'));
-            pane.appendChild(this.dom.el('p', null, 'Use jstack -l or jcmd <pid> Thread.print -l to include the owners of java.util.concurrent locks. Several dumps taken a few seconds apart, in one file or in files opened together, let JThread find threads that do not move.'));
-            pane.appendChild(this.dom.el('p', 'ts-muted', 'The files are read and analysed in this page. Nothing is uploaded.'));
+            pane.appendChild(this.dom.el('p', null, 'Open one or more files that contain HotSpot thread dumps from JDK 8 or later.'));
+            pane.appendChild(this.dom.el('p', null, 'Use jstack -l <pid> or jcmd <pid> Thread.print -l to include the owners of java.util.concurrent locks.'));
+            pane.appendChild(this.dom.el('p', 'ts-muted', 'All data remains local.'));
             this.content.appendChild(welcome);
             this.detail.showMessage('');
         }
@@ -938,7 +1163,7 @@
             ].filter(function (column) { return column.title !== 'File' || log.sources.length > 1; });
             const table = new DataTable(this.dom, columns, dumps, {
                 noun: 'dump',
-                isAlert: (dump) => this.analysisOf(log, dump).deadlocks.length > 0,
+                rowClasses: (dump) => this.analysisOf(log, dump).hasConcerns() ? ['ts-row-concern'] : [],
                 onSelect: (dump) => this.tree.select(this.analysisOf(log, dump).node)
             });
             table.render(this.content);
@@ -965,14 +1190,14 @@
                 noun: 'thread',
                 filterText: function (thread) { return thread.text(); },
                 filterPlaceholder: 'Filter by name or stack text',
-                isAlert: function (thread) { return thread.carrierStuckInApplicationCode; },
+                rowClasses: function (thread) { return analysis.threadClasses(thread); },
                 onSelect: (thread) => this.detail.showThread(thread, analysis)
             });
             this.currentTable.render(this.content);
         }
 
         showMonitors(analysis, monitors) {
-            this.currentTable = new DataTable(this.dom, [
+            this.currentTable = new TreeTable(this.dom, [
                 { title: 'Monitor', value: function (monitor) { return '<' + monitor.address + '>'; } },
                 { title: 'Class', value: function (monitor) { return monitor.className || ''; } },
                 { title: 'Locked by', value: function (monitor) { return monitor.lockingThreads().map(function (thread) { return thread.name; }).join(', '); } },
@@ -982,8 +1207,13 @@
                 noun: 'monitor',
                 filterText: function (monitor) { return monitor.label(); },
                 filterPlaceholder: 'Filter by address or class',
-                isAlert: function (monitor) { return monitor.isCongested(); },
-                onSelect: (monitor) => this.detail.showMonitor(monitor, analysis)
+                rowClasses: function (monitor) { return analysis.concerns.monitors.has(monitor) ? ['ts-row-concern'] : []; },
+                onSelect: (monitor) => this.detail.showMonitor(monitor, analysis),
+                children: (monitor) => [
+                    new MonitorThreads('Locked by', monitor.lockingThreads(), this.detail, analysis),
+                    new MonitorThreads('Waiting to lock', monitor.waiters, this.detail, analysis),
+                    new MonitorThreads('Waiting on (Object.wait() or parked)', monitor.sleepers, this.detail, analysis)
+                ].filter(function (group) { return group.threads.length > 0; })
             });
             this.currentTable.render(this.content);
         }
@@ -995,6 +1225,7 @@
                 { title: 'Threads', value: function (report) { return report.threadNames.join(', '); } }
             ], reports, {
                 noun: 'deadlock',
+                rowClasses: function () { return ['ts-row-concern']; },
                 onSelect: (report) => this.detail.showDeadlock(report, reports.indexOf(report) + 1, analysis)
             });
             this.currentTable.render(this.content);
@@ -1034,7 +1265,6 @@
 
         afterClosing(message) {
             this.closeButton.disabled = this.tree.roots.length === 0;
-            this.enableAdding(this.tree.roots.length > 0);
             if (this.tree.roots.length > 0 && this.tree.selected === null) {
                 this.tree.select(this.tree.roots[0]);
             } else if (this.tree.roots.length === 0) {
@@ -1363,6 +1593,7 @@
             this.note(message, this.app.categories.problem);
             this.pane.appendChild(this.listButtons());
             this.pane.appendChild(this.categoryList());
+            this.pane.appendChild(this.exampleList());
             this.app.detail.showMessage('Select a category to edit it, or create a new one.');
         }
 
@@ -1405,6 +1636,31 @@
                 list.appendChild(item);
             }
             return list;
+        }
+
+        exampleList() {
+            const section = this.dom.el('div', 'ts-examples');
+            section.appendChild(this.dom.el('h3', null, 'Examples'));
+            section.appendChild(this.dom.el('p', 'ts-muted', 'Use one as it is or as a starting point for your own. Nothing is added until you save it.'));
+            const list = this.dom.el('ul', 'ts-category-list');
+            for (const example of new model.CategoryExamples().list()) {
+                const item = this.dom.el('li');
+                item.appendChild(this.dom.el('strong', null, example.name));
+                item.appendChild(this.dom.el('span', 'ts-muted', example.purpose));
+                item.appendChild(this.dom.el('code', 'ts-rule-text', example.rule));
+                item.appendChild(this.action('Use this', () => this.showExample(example)));
+                list.appendChild(item);
+            }
+            section.appendChild(list);
+            return section;
+        }
+
+        /** Opens the editor on a new category filled in from an example. */
+        showExample(example) {
+            this.showEditor(null);
+            this.nameInput.value = example.name;
+            this.ruleText.value = example.rule;
+            this.textChanged();
         }
 
         importButton() {
@@ -1589,7 +1845,7 @@
         }
     }
 
-    /** The overview of one dump: state distribution, counts, TDA's hints, SMR and heap information. */
+    /** The overview of one dump: state distribution, counts, TDA's hints and heap information. */
     class OverviewPane {
         constructor(dom, app, analysis) {
             this.dom = dom;
@@ -1612,7 +1868,6 @@
             }
             pane.appendChild(this.stats());
             this.hints(pane);
-            this.smr(pane);
             this.heap(pane);
             container.appendChild(pane);
         }
@@ -1699,19 +1954,6 @@
                 box.appendChild(this.dom.link('Show', () => this.app.navigate(this.analysis, hint.target)));
             }
             return box;
-        }
-
-        smr(pane) {
-            const dump = this.analysis.dump;
-            if (dump.smrLines.length === 0) {
-                return;
-            }
-            const unresolved = dump.unresolvedSmrAddresses();
-            pane.appendChild(this.dom.el('h3', null, 'Threads class SMR info'));
-            pane.appendChild(this.dom.el('p', unresolved.length > 0 ? 'ts-error' : 'ts-muted', unresolved.length > 0
-                ? 'Not found among the threads: ' + unresolved.join(', ')
-                : 'Every address in the list belongs to a thread in this dump.'));
-            pane.appendChild(this.dom.el('pre', 'ts-block', dump.smrLines.join('\n')));
         }
 
         heap(pane) {
