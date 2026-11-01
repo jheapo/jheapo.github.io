@@ -24,8 +24,11 @@
     /** The two text formats a thread dump can arrive in. */
     const DumpFormat = Object.freeze({
         JSTACK: 'jstack',          // "Full thread dump": jstack, jcmd Thread.print, kill -3
-        JCMD_TEXT: 'jcmd-text'     // jcmd Thread.dump_to_file (JDK 21 and later)
+        JCMD_TEXT: 'jcmd-text'     // jcmd Thread.dump_to_file (JDK 21 and later), plain or JSON
     });
+
+    /** The name the JDK gives the container of threads that were not started in an executor or scope. */
+    const ROOT_CONTAINER = '<root>';
 
     /** How a thread relates to a monitor or lock, taken from its "- ..." lines. */
     const LockKind = Object.freeze({
@@ -157,7 +160,13 @@
             this.threadState = '';
             this.carriedVirtualThread = null;
             this.carrierStuckInApplicationCode = false;
+            this.container = null;   // the thread container that started it; only a JSON dump says
             headerReader.read(header, this);
+        }
+
+        /** The name, or the thread id for an unnamed thread (virtual threads are unnamed by default). */
+        label() {
+            return this.name !== '' ? this.name : '#' + this.number;
         }
 
         /** Adds a line below the header; frame is passed when the format prints frames without "at". */
@@ -574,7 +583,9 @@
      * later JDKs add the thread state, "at" before each frame and lock lines naming Class@identityHash.
      */
     class JcmdTextDumpReader {
-        constructor() {
+        /** containers maps a thread id to the thread container it belongs to, when the dump says. */
+        constructor(containers) {
+            this.containers = containers || new Map();
             this.headerReader = new JcmdThreadHeaderReader();
             this.lockLines = new LockLineReader();
             this.thread = null;
@@ -600,6 +611,7 @@
             if (/^#\d+ "/.test(line)) {
                 this.closeThread();
                 this.thread = new JavaThread(line, lineNumber, this.headerReader);
+                this.thread.container = this.containers.get(this.thread.number) || null;
             } else if (this.thread !== null && (line.trim() === '' || /^\s/.test(line))) {
                 this.addToThread(line);
             } else {
@@ -636,6 +648,96 @@
      * Finds the thread dumps in the files opened together and hands each one to the registered
      * listeners. A listener implements dumpRead(dump) and, optionally, logRead(log).
      */
+    /**
+     * Reads the JSON written by jcmd <pid> Thread.dump_to_file -format=json (JDK 21 and later).
+     * The JSON holds what the plain format prints, so each thread is written out as the plain
+     * format's lines and read by JcmdTextDumpReader: there is one reader of lock lines, and the
+     * detail pane shows a thread as the plain format would. Each thread keeps the name of the
+     * thread container it is listed in.
+     */
+    class JsonThreadDumpReader {
+        recognises(text) {
+            return /^\s*\{\s*"threadDump"/.test(text);
+        }
+
+        read(text, source) {
+            const dump = this.content(text, source).threadDump;
+            const lines = [String(dump.processId), String(dump.time), String(dump.runtimeVersion), ''];
+            const containers = new Map();
+            for (const container of dump.threadContainers) {
+                for (const thread of container.threads || []) {
+                    new JsonThread(thread).appendTo(lines);
+                    containers.set(String(thread.tid), container.container);
+                }
+            }
+            return new JcmdTextDumpReader(containers).read(lines, source);
+        }
+
+        content(text, source) {
+            let content;
+            try {
+                content = JSON.parse(text);
+            } catch (error) {
+                throw new Error(source.name + ' is not a valid JSON thread dump: ' + error.message);
+            }
+            if (!content.threadDump || !Array.isArray(content.threadDump.threadContainers)) {
+                throw new Error(source.name + ' is not a valid JSON thread dump: it has no threadDump.threadContainers.');
+            }
+            return content;
+        }
+    }
+
+    /** One thread of a JSON thread dump, written out in the plain Thread.dump_to_file format. */
+    class JsonThread {
+        constructor(thread) {
+            this.thread = thread;
+        }
+
+        appendTo(lines) {
+            const thread = this.thread;
+            lines.push('#' + thread.tid + ' "' + thread.name + '"' + (thread.virtual ? ' virtual' : '') + ' ' + thread.state + ' ' + thread.time);
+            const stack = thread.stack || [];
+            stack.forEach((frame, depth) => {
+                lines.push('    at ' + frame);
+                if (depth === 0) {
+                    this.appendBlocking(lines);
+                }
+                this.appendOwned(lines, depth);
+            });
+            if (stack.length === 0) {
+                this.appendBlocking(lines);
+                this.appendOwned(lines, 0);
+            }
+            lines.push('');
+        }
+
+        appendBlocking(lines) {
+            const thread = this.thread;
+            if (thread.parkBlocker) {
+                const owner = thread.parkBlocker.owner;
+                lines.push('    - parking to wait for <' + thread.parkBlocker.object + '>'
+                    + (owner === undefined || owner === null ? '' : ', owner #' + owner));
+            }
+            if (thread.blockedOn) {
+                lines.push('    - waiting to lock <' + thread.blockedOn + '>');
+            }
+            if (thread.waitingOn) {
+                lines.push('    - waiting on <' + thread.waitingOn + '>');
+            }
+        }
+
+        appendOwned(lines, depth) {
+            for (const owned of this.thread.monitorsOwned || []) {
+                if (Number(owned.depth) !== depth) {
+                    continue;
+                }
+                for (const lock of owned.locks || []) {
+                    lines.push(lock === null ? '    - lock is eliminated' : '    - locked <' + lock + '>');
+                }
+            }
+        }
+    }
+
     class ThreadDumpReader {
         constructor() {
             this.listeners = [];
@@ -665,6 +767,11 @@
         }
 
         readSource(source, log) {
+            const json = new JsonThreadDumpReader();
+            if (json.recognises(source.text)) {
+                this.close(json.read(source.text, source), log);
+                return;
+            }
             const lines = source.text.split(/\r?\n/);
             const jcmdText = new JcmdTextDumpReader();
             if (jcmdText.recognises(lines)) {
@@ -1257,8 +1364,62 @@
     }
 
     /** The thread groupings TDA shows under each dump. */
+    /**
+     * The thread containers of a plain Thread.dump_to_file dump, which lists threads container by
+     * container but does not name the containers. The frame just above VirtualThread.run names the
+     * executor or scope that ran a virtual thread's task; a virtual thread started directly
+     * (Thread.ofVirtual, Thread.startVirtualThread) is in the root container. The threads of one
+     * container are listed next to each other, so a run of virtual threads with the same starter is
+     * one container. The container's identity is not in the dump, and two containers of the same
+     * kind listed next to each other cannot be told apart.
+     */
+    class InferredContainers {
+        constructor(threads) {
+            this.positions = new Map();
+            threads.forEach((thread, index) => this.positions.set(thread, index));
+        }
+
+        groups(virtual) {
+            const groups = [];
+            let root = null;
+            let last = null;
+            for (const thread of virtual) {
+                const starter = this.starterOf(thread);
+                if (starter === ROOT_CONTAINER) {
+                    if (root === null) {
+                        root = { container: ROOT_CONTAINER, threads: [], inferred: true };
+                        groups.push(root);
+                    }
+                    root.threads.push(thread);
+                    continue;
+                }
+                const previous = last === null ? null : last.threads[last.threads.length - 1];
+                if (last === null || last.container !== starter || this.positions.get(thread) !== this.positions.get(previous) + 1) {
+                    last = { container: starter, threads: [], inferred: true };
+                    groups.push(last);
+                }
+                last.threads.push(thread);
+            }
+            return groups;
+        }
+
+        /** The executor or scope that ran the thread's task, or the root container for a thread started directly. */
+        starterOf(thread) {
+            const run = thread.frames.findIndex(function (frame) { return /java\.lang\.VirtualThread\.run\(/.test(frame); });
+            const above = run > 0 ? thread.frames[run - 1] : '';
+            if (/java\.util\.concurrent\.ThreadPerTaskExecutor\$TaskRunner\.run\(/.test(above)) {
+                return 'ThreadPerTaskExecutor';
+            }
+            if (/java\.util\.concurrent\.StructuredTaskScope(Impl)?\$SubtaskImpl\.run\(/.test(above)) {
+                return 'StructuredTaskScope';
+            }
+            return ROOT_CONTAINER;
+        }
+    }
+
     class ThreadCategories {
         constructor(dump) {
+            this.format = dump.format;
             this.all = dump.threads;
             this.waiting = dump.threads.filter(function (thread) { return thread.isWaitingForMonitor(); });
             this.sleeping = dump.threads.filter(function (thread) { return thread.isSleepingOnMonitor(); });
@@ -1266,6 +1427,26 @@
             this.virtual = dump.threads.filter(function (thread) { return thread.isVirtualOrCarrier(); });
             const classifier = new ActivityClassifier();
             this.active = dump.threads.filter(function (thread) { return classifier.activityOf(thread) === Activity.APPLICATION; });
+        }
+
+        /**
+         * The virtual threads grouped by the thread container that started them, in dump order, as
+         * { container, threads, inferred }. A JSON dump names the containers; a plain
+         * Thread.dump_to_file dump does not, and the groups are inferred from the code that started
+         * each thread. A jstack dump gives one group with no container.
+         */
+        virtualByContainer() {
+            if (this.format === DumpFormat.JCMD_TEXT && this.virtual.every(function (thread) { return thread.container === null; })) {
+                return new InferredContainers(this.all).groups(this.virtual);
+            }
+            const groups = new Map();
+            for (const thread of this.virtual) {
+                if (!groups.has(thread.container)) {
+                    groups.set(thread.container, { container: thread.container, threads: [], inferred: false });
+                }
+                groups.get(thread.container).threads.push(thread);
+            }
+            return Array.from(groups.values());
         }
 
         stateDistribution() {
@@ -1350,6 +1531,83 @@
 
     }
 
+    /**
+     * One blocking chain: the thread at its end (the root blocker, which is not itself waiting to
+     * acquire anything) and every thread stuck behind it, directly or through other blocked
+     * threads. A chain that closes on itself is a deadlock and is left to Deadlocks.
+     */
+    class BlockingChain {
+        constructor(root, waits) {
+            this.root = root;
+            this.waits = waits;
+            this.behind = [];
+            this.depth = 0;
+            this.monitors = [];
+        }
+
+        add(thread, distance) {
+            this.behind.push(thread);
+            this.depth = Math.max(this.depth, distance);
+            const monitor = this.waits.get(thread).monitor;
+            if (this.waits.get(thread).holder === this.root && this.monitors.indexOf(monitor) < 0) {
+                this.monitors.push(monitor);
+            }
+        }
+
+        /** The threads waiting to acquire a monitor or lock that thread holds, in dump order. */
+        waitersOf(thread) {
+            return this.behind.filter((candidate) => this.waits.get(candidate).holder === thread);
+        }
+
+        monitorWaitedFor(thread) {
+            return this.waits.has(thread) ? this.waits.get(thread).monitor : null;
+        }
+    }
+
+    /**
+     * The blocking chains of one dump, the threads blocking the most others first. Each thread
+     * waiting to acquire a monitor or lock is followed to the holder, and on while the holder is
+     * itself waiting, to the thread at the end: that thread's code is the bottleneck, even when the
+     * congested monitor is one the threads at the front of the chain wait for.
+     */
+    class BlockingChains {
+        constructor(dump, monitors) {
+            this.dump = dump;
+            this.waits = new Deadlocks(dump, monitors).waitsFor();
+        }
+
+        list() {
+            const chains = new Map();
+            for (const thread of this.dump.threads) {
+                const end = this.endOf(thread);
+                if (end === null) {
+                    continue;
+                }
+                if (!chains.has(end.root)) {
+                    chains.set(end.root, new BlockingChain(end.root, this.waits));
+                }
+                chains.get(end.root).add(thread, end.distance);
+            }
+            return Array.from(chains.values()).sort(function (a, b) { return b.behind.length - a.behind.length; });
+        }
+
+        /** The thread at the end of the chain thread waits in, and how far along it is; null when it waits for nothing or in a cycle. */
+        endOf(thread) {
+            const seen = new Set();
+            let current = thread;
+            let distance = 0;
+            while (this.waits.has(current)) {
+                if (seen.has(current)) {
+                    return null;
+                }
+                seen.add(current);
+                current = this.waits.get(current).holder;
+                distance++;
+            }
+            return distance === 0 ? null : { root: current, distance: distance };
+        }
+    }
+
     /** A ready-made category: a name, a rule, and what the rule finds. */
     class CategoryExample {
         constructor(name, rule, purpose) {
@@ -1387,7 +1645,8 @@
     /**
      * What JThread flags as a concern in one dump, so a client can paint it: the threads in a
      * deadlock, the thread holding a congested monitor (not the threads waiting for it), a carrier
-     * thread stuck in application code, the congested monitors, and the categories a critical or
+     * thread stuck in application code, the thread at the end of a blocking chain more than one
+     * deep, the congested monitors, and the categories a critical or
      * warning hint points at. Long running threads are a comparison of dumps and not part of this.
      */
     class Concerns {
@@ -1397,6 +1656,7 @@
             this.categories = new Set();
             this.addDeadlocks(dump, new Deadlocks(dump, monitors).list());
             this.addCongestedMonitors(monitors);
+            this.addChainEnds(new BlockingChains(dump, monitors).list());
             this.addStuckCarriers(dump);
             this.addHintTargets(new DumpHints(dump).list());
         }
@@ -1418,6 +1678,15 @@
                     this.monitors.add(monitor);
                     this.categories.add(monitor.hasLockingThread() ? 'monitors' : 'monitors-without-lock');
                     monitor.lockingThreads().forEach((thread) => this.threads.add(thread));
+                }
+            }
+        }
+
+        /** The thread at the end of a chain more than one deep: threads are stuck behind threads that are stuck behind it. */
+        addChainEnds(chains) {
+            for (const chain of chains) {
+                if (chain.depth > 1) {
+                    this.threads.add(chain.root);
                 }
             }
         }
@@ -1512,6 +1781,7 @@
         ThreadCategories: ThreadCategories,
         DumpHints: DumpHints,
         Concerns: Concerns,
+        BlockingChains: BlockingChains,
         CategoryExamples: CategoryExamples,
         LongRunningThreads: LongRunningThreads
     };

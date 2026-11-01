@@ -9,7 +9,7 @@
     'use strict';
 
     /** Raised by one every time a changed view.js is delivered; shown in the status bar to tell which copy is loaded. */
-    const VIEW_BUILD = 13;
+    const VIEW_BUILD = 17;
 
     const model = root.ThreadSee;
     const JDK_FRAME = /^\s*at (java|javax|jdk|sun|com\.sun)\./;
@@ -64,6 +64,7 @@
             this.deadlocks = new model.Deadlocks(dump, this.monitors).list();
             this.hints = new model.DumpHints(dump).list();
             this.concerns = new model.Concerns(dump, this.monitors);
+            this.chains = new model.BlockingChains(dump, this.monitors).list();
         }
 
         hasConcerns() {
@@ -413,7 +414,7 @@
         }
 
         rowClasses() {
-            return [];
+            return ['ts-row-group'];
         }
 
         children() {
@@ -422,6 +423,37 @@
 
         show() {
             this.detail.showMessage('Select a thread to see its stack.');
+        }
+    }
+
+    /** A thread stuck in a blocking chain, shown with the monitor or lock it waits for; it opens into the threads waiting for it. */
+    class ChainThread {
+        constructor(chain, thread, detail, analysis) {
+            this.chain = chain;
+            this.thread = thread;
+            this.detail = detail;
+            this.analysis = analysis;
+            this.startsOpen = chain.waitersOf(thread).length > 0;
+        }
+
+        label() {
+            return this.thread.label();
+        }
+
+        note() {
+            return 'waiting to lock ' + this.chain.monitorWaitedFor(this.thread).label();
+        }
+
+        rowClasses() {
+            return this.analysis.threadClasses(this.thread);
+        }
+
+        children() {
+            return this.chain.waitersOf(this.thread).map((thread) => new ChainThread(this.chain, thread, this.detail, this.analysis));
+        }
+
+        show() {
+            this.detail.showThread(this.thread, this.analysis);
         }
     }
 
@@ -435,7 +467,7 @@
         }
 
         label() {
-            return this.thread.name;
+            return this.thread.label();
         }
 
         note() {
@@ -536,7 +568,7 @@
                 this.container.appendChild(this.dom.el('p', null, this.noHolderText(monitor, analysis)));
             }
             for (const holder of monitor.lockingThreads()) {
-                this.container.appendChild(this.dom.el('h3', null, 'Stack of ' + holder.name));
+                this.container.appendChild(this.dom.el('h3', null, 'Stack of ' + holder.label()));
                 this.container.appendChild(this.threadText(holder, analysis));
             }
         }
@@ -557,7 +589,7 @@
             const list = this.dom.el('ul');
             for (const thread of threads) {
                 const item = this.dom.el('li');
-                item.appendChild(this.dom.el('span', null, thread.name));
+                item.appendChild(this.dom.el('span', null, thread.label()));
                 item.appendChild(this.dom.el('span', 'ts-muted', '  ' + (thread.frames[0] || thread.threadState)));
                 list.appendChild(item);
             }
@@ -597,7 +629,7 @@
 
         showOccurrences(entry, analyses) {
             this.dom.clear(this.container);
-            this.container.appendChild(this.dom.el('h2', null, entry.thread.name));
+            this.container.appendChild(this.dom.el('h2', null, entry.thread.label()));
             this.container.appendChild(this.dom.el('p', 'ts-muted',
                 'Unchanged in ' + entry.occurrences.length + ' dumps' + this.cpuSummary(entry) + '.'));
             for (const thread of entry.occurrences) {
@@ -927,7 +959,7 @@
         }
 
         noDumpMessage(log) {
-            return 'No thread dump was found in ' + log.name + '. JThread reads the output of jstack, jcmd Thread.print and kill -3 (starting with the line "Full thread dump") and the file written by jcmd Thread.dump_to_file.';
+            return 'No thread dump was found in ' + log.name + '. JThread reads the output of jstack, jcmd Thread.print and kill -3 (starting with the line "Full thread dump") and the file written by jcmd Thread.dump_to_file, as plain text or JSON.';
         }
 
         open(sources) {
@@ -997,8 +1029,9 @@
             const node = new TreeNode(dump.title(), '▤', () => this.showOverview(analysis), { expanded: expanded, closable: true });
             const add = (key, label, icon, rows, show) => {
                 if (key === 'threads' || rows.length > 0) {
-                    node.add(new TreeNode(label, icon, show, { key: key }));
+                    return node.add(new TreeNode(label, icon, show, { key: key }));
                 }
+                return null;
             };
             const monitors = analysis.monitors.all();
             const unowned = analysis.monitors.withoutLockingThread();
@@ -1008,14 +1041,19 @@
                 () => this.showThreads(analysis, categories.active, 'Active Threads'));
             add('deadlocks', 'Deadlocks (' + plural(analysis.deadlocks.length, 'deadlock') + ')', '⚠', analysis.deadlocks,
                 () => this.showDeadlocks(analysis));
+            add('chains', 'Blocking Chains (' + plural(analysis.chains.length, 'chain') + ')', '\u21B3', analysis.chains,
+                () => this.showChains(analysis));
             add('waiting', 'Threads waiting for Monitors (' + categories.waiting.length + ' Threads waiting)', '⧖', categories.waiting,
                 () => this.showThreads(analysis, categories.waiting, 'Threads waiting for Monitors'));
             add('sleeping', 'Threads sleeping on Monitors (' + categories.sleeping.length + ' Threads sleeping)', '☾', categories.sleeping,
                 () => this.showThreads(analysis, categories.sleeping, 'Threads sleeping on Monitors'));
             add('locking', 'Threads locking Monitors (' + categories.locking.length + ' Threads locking)', '⚿', categories.locking,
                 () => this.showThreads(analysis, categories.locking, 'Threads locking Monitors'));
-            add('virtual', 'Virtual Threads (' + categories.virtual.length + ' Virtual Threads)', '☲', categories.virtual,
+            const virtual = add('virtual', 'Virtual Threads (' + categories.virtual.length + ' Virtual Threads)', '☲', categories.virtual,
                 () => this.showThreads(analysis, categories.virtual, 'Virtual Threads'));
+            if (virtual !== null) {
+                this.addContainers(virtual, analysis, categories.virtualByContainer());
+            }
             add('monitors', 'Monitors (' + monitors.length + ' Monitors)', '▣', monitors,
                 () => this.showMonitors(analysis, monitors));
             add('monitors-without-lock', 'Monitors without locking thread (' + unowned.length + ' Monitors)', '▢', unowned,
@@ -1026,9 +1064,26 @@
                     () => this.showThreads(analysis, threads, category.name), { key: 'custom:' + category.name }));
             }
             node.analysis = analysis;
-            node.children.forEach(function (child) { child.analysis = analysis; });
+            node.children.forEach(function (child) {
+                child.analysis = analysis;
+                child.children.forEach(function (grandchild) { grandchild.analysis = analysis; });
+            });
             analysis.node = node;
             return node;
+        }
+
+        /** Under Virtual Threads, one entry per thread container that started virtual threads, when the dump names them (JSON). */
+        addContainers(virtual, analysis, groups) {
+            if (groups.every(function (group) { return group.container === null; })) {
+                return;
+            }
+            const note = 'Grouped by the code that started them: this dump does not name its thread containers.';
+            groups.forEach((group, index) => {
+                const title = containerLabel(group.container || 'no container');
+                virtual.add(new TreeNode(title + ' (' + plural(group.threads.length, 'Virtual Thread') + ')', '\u25E6',
+                    () => this.showThreads(analysis, group.threads, 'Virtual Threads in ' + title, group.inferred ? note : null),
+                    { key: 'virtual:' + index + ':' + group.container }));
+            });
         }
 
         /** Builds every tree again after the custom categories change, keeping what was expanded and selected. */
@@ -1067,7 +1122,8 @@
             for (const rootNode of roots) {
                 for (const child of rootNode.children) {
                     if (dump !== null && child.analysis && child.analysis.dump === dump) {
-                        const match = child.children.find(function (node) { return node.key === key; });
+                        const nodes = child.children.concat(...child.children.map(function (node) { return node.children; }));
+                        const match = nodes.find(function (node) { return node.key === key; });
                         return match || child;
                     }
                 }
@@ -1129,6 +1185,7 @@
             pane.appendChild(this.dom.el('h1', null, 'Analyse Java thread dumps in your browser'));
             pane.appendChild(this.dom.el('p', null, 'Open one or more files that contain HotSpot thread dumps from JDK 8 or later.'));
             pane.appendChild(this.dom.el('p', null, 'Use jstack -l <pid> or jcmd <pid> Thread.print -l to include the owners of java.util.concurrent locks.'));
+            pane.appendChild(this.dom.el('p', null, 'On JDK 21 and later, jcmd <pid> Thread.dump_to_file [-format=json] <file> also dumps the virtual threads, as plain text or JSON.'));
             pane.appendChild(this.dom.el('p', 'ts-muted', 'All data remains local.'));
             this.content.appendChild(welcome);
             this.detail.showMessage('');
@@ -1175,9 +1232,9 @@
             this.detail.showMessage('Select a category in the tree to see its threads or monitors.');
         }
 
-        showThreads(analysis, threads, title) {
+        showThreads(analysis, threads, title, note) {
             this.currentTable = new DataTable(this.dom, [
-                { title: 'Name', value: function (thread) { return thread.name; } },
+                { title: 'Name', value: function (thread) { return thread.label(); } },
                 { title: 'Type', value: function (thread) { return thread.type(); } },
                 { title: 'Prio', value: function (thread) { return numberOrNull(thread.prio); }, display: function (thread) { return thread.prio || ''; }, numeric: true },
                 { title: 'Thread-ID', value: function (thread) { return thread.tid || ''; } },
@@ -1190,6 +1247,7 @@
                 noun: 'thread',
                 filterText: function (thread) { return thread.text(); },
                 filterPlaceholder: 'Filter by name or stack text',
+                extraTools: note ? this.dom.el('span', 'ts-muted', note) : null,
                 rowClasses: function (thread) { return analysis.threadClasses(thread); },
                 onSelect: (thread) => this.detail.showThread(thread, analysis)
             });
@@ -1200,7 +1258,7 @@
             this.currentTable = new TreeTable(this.dom, [
                 { title: 'Monitor', value: function (monitor) { return '<' + monitor.address + '>'; } },
                 { title: 'Class', value: function (monitor) { return monitor.className || ''; } },
-                { title: 'Locked by', value: function (monitor) { return monitor.lockingThreads().map(function (thread) { return thread.name; }).join(', '); } },
+                { title: 'Locked by', value: function (monitor) { return monitor.lockingThreads().map(function (thread) { return thread.label(); }).join(', '); } },
                 { title: 'Waiting to lock', value: function (monitor) { return monitor.waiters.length; }, numeric: true },
                 { title: 'Waiting on', value: function (monitor) { return monitor.sleepers.length; }, numeric: true }
             ], monitors, {
@@ -1214,6 +1272,25 @@
                     new MonitorThreads('Waiting to lock', monitor.waiters, this.detail, analysis),
                     new MonitorThreads('Waiting on (Object.wait() or parked)', monitor.sleepers, this.detail, analysis)
                 ].filter(function (group) { return group.threads.length > 0; })
+            });
+            this.currentTable.render(this.content);
+        }
+
+        /** The blocking chains, the root blocker first: each opens into the threads stuck behind it, level by level. */
+        showChains(analysis) {
+            this.currentTable = new TreeTable(this.dom, [
+                { title: 'Root blocker', value: function (chain) { return chain.root.label(); } },
+                { title: 'Holds', value: function (chain) { return chain.monitors.map(function (monitor) { return monitor.label(); }).join(', '); } },
+                { title: 'Blocked directly', value: function (chain) { return chain.waitersOf(chain.root).length; }, numeric: true },
+                { title: 'Blocked in total', value: function (chain) { return chain.behind.length; }, numeric: true },
+                { title: 'Longest chain', value: function (chain) { return chain.depth; }, numeric: true }
+            ], analysis.chains, {
+                noun: 'chain',
+                filterText: function (chain) { return chain.root.label() + ' ' + chain.behind.map(function (thread) { return thread.label(); }).join(' '); },
+                filterPlaceholder: 'Filter by thread name',
+                rowClasses: function (chain) { return analysis.threadClasses(chain.root).filter(function (name) { return name === 'ts-row-concern'; }); },
+                onSelect: (chain) => this.detail.showThread(chain.root, analysis),
+                children: (chain) => chain.waitersOf(chain.root).map((thread) => new ChainThread(chain, thread, this.detail, analysis))
             });
             this.currentTable.render(this.content);
         }
@@ -1275,6 +1352,12 @@
                 this.showError(message);
             }
         }
+    }
+
+    /** A container's name without the package: ThreadPerTaskExecutor@3878da1e, or ForkJoinPool-1 for a scheduler's container. */
+    function containerLabel(container) {
+        const slash = container.indexOf('/');
+        return slash > 0 ? container.substring(0, slash) : container.replace(/^[\w.]*\./, '');
     }
 
     function plural(count, noun) {
@@ -1984,7 +2067,7 @@
             this.dom.clear(this.container);
             const found = new model.LongRunningThreads(this.log.dumps, this.minimum).list();
             const table = new DataTable(this.dom, [
-                { title: 'Name', value: function (entry) { return entry.thread.name; } },
+                { title: 'Name', value: function (entry) { return entry.thread.label(); } },
                 { title: 'In dumps', value: function (entry) { return entry.occurrences.length; }, numeric: true },
                 { title: 'Thread.State', value: function (entry) { return entry.thread.threadState; } },
                 { title: 'CPU change (ms)', value: function (entry) { return entry.cpuDeltaMs; }, display: function (entry) { return formatMs(entry.cpuDeltaMs); }, numeric: true },

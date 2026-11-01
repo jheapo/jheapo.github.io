@@ -432,7 +432,15 @@ body:has(> .ts-app) {
     padding-left: 46px;
 }
 
-.ts-row-child[aria-level="2"] .ts-row-label {
+.ts-table tr[aria-level="4"] td:first-child {
+    padding-left: 66px;
+}
+
+.ts-table tr[aria-level="5"] td:first-child {
+    padding-left: 86px;
+}
+
+.ts-row-group .ts-row-label {
     font-weight: 600;
 }
 
