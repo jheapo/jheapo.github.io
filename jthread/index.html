@@ -4,34 +4,34 @@ title: JThread
 description: Analyse Java thread dumps in your browser. The files are read in the page and never uploaded.
 favicon: /jthread/images/favicon-32.png
 stylesheets:
-  - /jthread/css/threadsee.css
+  - /jthread/css/jthread.css
 ---
-<!-- Written by bin/publish.sh in threadsee from its index.html: edit it there, not here. -->
+<!-- Written by bin/publish.sh in jthread from its index.html: edit it there, not here. -->
 <div class="jthread-page">
 {% raw %}
 <!-- jthread:app begin: bin/publish.sh copies the lines from here to "jthread:app end" into the jheapo website -->
-<div class="ts-app" id="threadsee">
-    <header class="ts-toolbar">
-        <span class="ts-brand"><img class="ts-brand-logo" src="images/duke-head.png" alt="" width="28" height="28">JThread</span>
-        <label class="ts-button ts-button-primary" title="Open one or more files containing thread dumps; files opened together are read as one series">
+<div class="jt-app" id="jthread">
+    <header class="jt-toolbar">
+        <span class="jt-brand"><img class="jt-brand-logo" src="images/duke-head.png" alt="" width="28" height="28">JThread</span>
+        <label class="jt-button jt-button-primary" title="Files opened together are read as one set.">
             Open thread dump(s)
-            <input type="file" id="ts-file" class="ts-file-input" multiple>
+            <input type="file" id="jt-file" class="jt-file-input" multiple>
         </label>
-        <button type="button" class="ts-button" id="ts-close" disabled title="Close the file of the selected dump, or the selected set; Cmd-click or Ctrl-click dumps to close several files">Close</button>
-        <button type="button" class="ts-button" id="ts-categories" title="Define your own categories of threads">Categories&hellip;</button>
+        <button type="button" class="jt-button" id="jt-close" disabled title="Closes the selected dump's file, or the set. Cmd/Ctrl-click to select several.">Close</button>
+        <button type="button" class="jt-button" id="jt-categories" title="Custom categories.">Categories&hellip;</button>
     </header>
-    <div class="ts-main" id="ts-main">
-        <nav class="ts-tree" id="ts-tree" aria-label="Thread dumps"></nav>
-        <div class="ts-splitter ts-splitter-vertical" id="ts-split-vertical" role="separator" aria-orientation="vertical"></div>
-        <section class="ts-content" id="ts-content" aria-live="polite"></section>
-        <div class="ts-splitter ts-splitter-horizontal" id="ts-split-horizontal" role="separator" aria-orientation="horizontal"></div>
-        <section class="ts-detail" id="ts-detail"></section>
+    <div class="jt-main" id="jt-main">
+        <nav class="jt-tree" id="jt-tree" aria-label="Thread dumps"></nav>
+        <div class="jt-splitter jt-splitter-vertical" id="jt-split-vertical" role="separator" aria-orientation="vertical"></div>
+        <section class="jt-content" id="jt-content" aria-live="polite"></section>
+        <div class="jt-splitter jt-splitter-horizontal" id="jt-split-horizontal" role="separator" aria-orientation="horizontal"></div>
+        <section class="jt-detail" id="jt-detail"></section>
     </div>
-    <footer class="ts-status">
-        <span>JThread 0.1 &middot; derived from <a href="https://github.com/irockel/tda" rel="noopener">TDA</a> &middot; LGPL-2.1</span>
-        <span id="ts-status"></span>
+    <footer class="jt-status">
+        <span>JThread 0.1 &middot; LGPL-2.1</span>
+        <span id="jt-status"></span>
     </footer>
-    <div class="ts-drop-overlay" id="ts-drop">Drop the thread dump files to analyse them</div>
+    <div class="jt-drop-overlay" id="jt-drop">Drop the thread dump files to analyse them</div>
 </div>
 <script src="js/model.js"></script>
 <script src="js/view.js"></script>

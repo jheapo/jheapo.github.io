@@ -1,9 +1,7 @@
 /*
- * threadsee - thread dump model.
+ * jthread - thread dump model.
  *
- * A JavaScript rewrite of the parsing and analysis in TDA - Thread Dump Analyzer
- * (https://github.com/irockel/tda), and like TDA licensed under the
- * Lesser GNU General Public License 2.1 or later.
+ * Licensed under the Lesser GNU General Public License 2.1 or later; see LICENSE and NOTICE.
  *
  * This file knows nothing about any user interface. It turns the text of a log
  * file into ThreadDump objects and offers analyses over them. The same file runs
@@ -41,7 +39,7 @@
         ELIMINATED: 'eliminated'
     });
 
-    /** Decodes the bytes of a log file, recognising the UTF-16 logs TDA learned to read. */
+    /** Decodes the bytes of a log file, recognising UTF-16 logs. */
     class CharsetSniffer {
         decode(bytes) {
             return new TextDecoder(this.encodingOf(bytes)).decode(bytes);
@@ -188,7 +186,7 @@
             }
         }
 
-        /** Port of TDA's check for a carrier thread stuck in application code. */
+        /** A carrier thread stuck in application code while carrying a virtual thread. */
         hasApplicationFrame() {
             for (const frame of this.frames) {
                 if (!/java\.lang\.VirtualThread\.run|java\.util\.concurrent\.ForkJoin|java\.base@|jdk\.internal/.test(frame)) {
@@ -320,7 +318,7 @@
         }
     }
 
-    /** A "Found one Java-level deadlock" report: as the JVM printed it, or as threadsee found it in the lock lines. */
+    /** A "Found one Java-level deadlock" report: as the JVM printed it, or as calculated from the lock lines. */
     class DeadlockReport {
         constructor(lines, foundBy) {
             this.lines = Object.freeze(lines.slice());
@@ -352,6 +350,7 @@
             this.source = source;
             this.sourceShown = false;
             this.format = format;
+            this.command = null;   // the jcmd command that wrote a Thread.dump_to_file dump
             this.lineNumber = lineNumber;
             this.timestamp = timestamp === null ? null : timestamp.substring(0, 19);
             this.instant = timestamp;   // full precision, for ordering dumps taken within the same second
@@ -369,7 +368,7 @@
             return 'Dump No. ' + this.number + ' at line ' + this.lineNumber + where + when;
         }
 
-        /** HotSpot before JDK 8 is outside threadsee's supported range; its dumps are parsed on a best-effort basis. */
+        /** HotSpot before JDK 8 is outside the supported range; its dumps are parsed on a best-effort basis. */
         isBeforeJdk8() {
             if (/\b1\.[4567]\.\d/.test(this.vmInfo)) {
                 return true;
@@ -584,8 +583,9 @@
      */
     class JcmdTextDumpReader {
         /** containers maps a thread id to the thread container it belongs to, when the dump says. */
-        constructor(containers) {
+        constructor(containers, command) {
             this.containers = containers || new Map();
+            this.command = command || 'jcmd <pid> Thread.dump_to_file';
             this.headerReader = new JcmdThreadHeaderReader();
             this.lockLines = new LockLineReader();
             this.thread = null;
@@ -600,6 +600,7 @@
             const timestamp = /^(\d{4}-\d\d-\d\d)T(\d\d:\d\d:\d\d(\.\d+)?)/.exec(lines[1].trim());
             this.dump = new ThreadDump(source.name, 1, timestamp === null ? null : timestamp[1] + ' ' + timestamp[2],
                 lines[2].trim(), DumpFormat.JCMD_TEXT);
+            this.dump.command = this.command;
             for (let index = 3; index < lines.length; index++) {
                 this.readLine(lines[index], index + 1);
             }
@@ -670,7 +671,7 @@
                     containers.set(String(thread.tid), container.container);
                 }
             }
-            return new JcmdTextDumpReader(containers).read(lines, source);
+            return new JcmdTextDumpReader(containers, 'jcmd <pid> Thread.dump_to_file -format=json').read(lines, source);
         }
 
         content(text, source) {
@@ -877,7 +878,7 @@
             return this.holders.length > 0;
         }
 
-        /** TDA flags more than five threads waiting on one monitor as high congestion. */
+        /** More than five threads waiting to lock one monitor is congestion. */
         isCongested() {
             return this.waiters.length > 5;
         }
@@ -943,8 +944,8 @@
 
     /**
      * The deadlocks of one dump. When the JVM printed a deadlock report, that report is the answer.
-     * Otherwise (jcmd Thread.dump_to_file prints none) threadsee follows each thread that waits to
-     * acquire a monitor or lock to the thread holding it, and reports every cycle it finds.
+     * Otherwise (jcmd Thread.dump_to_file prints none) each thread that waits to
+     * acquire a monitor or lock is followed to the thread holding it, and every cycle found is reported.
      */
     class Deadlocks {
         constructor(dump, monitors) {
@@ -1005,7 +1006,7 @@
         }
 
         report(cycle, waits) {
-            const lines = ['Found one Java-level deadlock (found by JThread: this dump has no deadlock report from the JVM):'];
+            const lines = ['Found one Java-level deadlock (calculated from the lock lines):'];
             for (const thread of cycle) {
                 const wait = waits.get(thread);
                 lines.push('"' + thread.name + '":');
@@ -1018,7 +1019,7 @@
                 lines.push('"' + thread.name + '":');
                 thread.lines.slice(1).forEach(function (line) { lines.push(line); });
             }
-            return new DeadlockReport(lines, 'threadsee');
+            return new DeadlockReport(lines, 'calculated');
         }
     }
 
@@ -1338,7 +1339,7 @@
     class CategoryFile {
         json(categories) {
             return JSON.stringify({
-                threadsee: 'categories',
+                jthread: 'categories',
                 version: 1,
                 categories: categories.map(function (category) { return { name: category.name, rule: category.rule.text() }; })
             }, null, 2);
@@ -1346,8 +1347,9 @@
 
         categories(json) {
             const content = JSON.parse(json);
-            if (content === null || content.threadsee !== 'categories' || !Array.isArray(content.categories)) {
-                throw new Error('This is not a threadsee category file.');
+            const tag = content === null ? null : (content.jthread || content.threadsee);   // threadsee: the project's earlier name
+            if (tag !== 'categories' || !Array.isArray(content.categories)) {
+                throw new Error('Not a category file.');
             }
             return content.categories.map(function (entry, index) {
                 if (typeof entry.name !== 'string' || entry.name.trim() === '' || typeof entry.rule !== 'string') {
@@ -1363,7 +1365,7 @@
         }
     }
 
-    /** The thread groupings TDA shows under each dump. */
+    /** The thread groupings shown under each dump. */
     /**
      * The thread containers of a plain Thread.dump_to_file dump, which lists threads container by
      * container but does not name the containers. The frame just above VirtualThread.run names the
@@ -1459,7 +1461,7 @@
         }
     }
 
-    /** The hints TDA's Analyzer gives for one dump, as data. */
+    /** The analysis hints for one dump, as data. */
     class DumpHints {
         constructor(dump) {
             this.dump = dump;
@@ -1485,9 +1487,8 @@
         addWaitingOrDeadlockHint(hints) {
             const waiting = this.percentOfThreads(this.categories.waiting.length);
             if (this.deadlocks.length > 0) {
-                const finder = this.deadlocks[0].foundBy === 'JVM' ? 'The JVM has detected ' : 'JThread has found ';
                 hints.push({ severity: 'critical', target: 'deadlocks',
-                    text: finder + this.deadlocks.length + ' deadlock(s) in this thread dump. Check the deadlocks for the threads and monitors involved.' });
+                    text: this.deadlocks.length + (this.deadlocks.length === 1 ? ' deadlock.' : ' deadlocks.') });
             } else if (waiting > 10) {
                 hints.push({ severity: 'warning', target: 'waiting',
                     text: Math.floor(waiting) + '% of all threads are waiting to acquire a monitor or lock. This might indicate congestion. Check the threads waiting for monitors and the monitors they wait on.' });
@@ -1517,7 +1518,7 @@
             const percent = this.percentOfThreads(waiting);
             if (percent > 50) {
                 hints.push({ severity: 'warning', target: 'monitors-without-lock',
-                    text: Math.floor(percent) + '% of all threads are waiting for a monitor that no application thread holds. TDA reads this as a sign that the garbage collector is blocking the monitors; check the GC log for the same period.' });
+                    text: Math.floor(percent) + '% of all threads are waiting for a monitor that no application thread holds. This can be a sign that the garbage collector is blocking the monitors; check the GC log for the same period.' });
             }
         }
 
@@ -1628,16 +1629,16 @@
             return [
                 new CategoryExample('Thread pool threads',
                     'name ~ /^(pool-\\d+-thread-|ForkJoinPool|http-nio-|https-jsse-nio-|qtp\\d+|.*-exec-\\d+)/',
-                    'Threads named by the usual pools: ThreadPoolExecutor, ForkJoinPool, Tomcat, Jetty and Spring.'),
+                    'Pool threads: ThreadPoolExecutor, ForkJoinPool, Tomcat, Jetty, Spring.'),
                 new CategoryExample('Waiting on the database',
                     'frame ~ /java\\.sql\\.|jdbc/i and top ~ /socketRead|NioSocketImpl|SocketDispatcher\\.read/',
-                    'Threads in a JDBC call that are reading from the socket: waiting for the database, not working.'),
+                    'In a JDBC call, reading the socket.'),
                 new CategoryExample('Contention in logging',
                     'frame ~ /org\\.apache\\.logging\\.log4j|ch\\.qos\\.logback|java\\.util\\.logging/ and lock ~ /waiting to lock|parking to wait/',
-                    'Threads inside a logging framework that are blocked on a lock, a common source of hidden serialisation.'),
+                    'Blocked on a lock in a logging framework.'),
                 new CategoryExample('Class loading under a lock',
                     'frame ~ /ClassLoader\\.loadClass/ and lock ~ /waiting to lock/',
-                    'Threads queued behind class loading, as at start-up or with lazily initialised singletons.')
+                    'Blocked loading a class.')
             ];
         }
     }
@@ -1709,7 +1710,7 @@
     }
 
     /**
-     * Threads whose text is unchanged across dumps (TDA's "long running thread detection").
+     * Threads whose text is unchanged across dumps (long running thread detection).
      * The cpu= and elapsed= counters are ignored when comparing; the change in cpu= is
      * reported so a thread spinning in place can be told apart from one that is blocked.
      */
@@ -1789,6 +1790,6 @@
     if (typeof module === 'object' && module.exports) {
         module.exports = api;
     } else {
-        root.ThreadSee = api;
+        root.JThread = api;
     }
 }(typeof globalThis !== 'undefined' ? globalThis : this));

@@ -1,0 +1,821 @@
+/*
+ * jthread - dump tree top left, table top right, thread text below. Every rule is
+ * scoped to .jt-app so the page can sit inside
+ * the jheapo website without touching the site's own styles.
+ */
+.jt-app {
+    --jt-bg: #ffffff;
+    --jt-panel: #f6f7f8;
+    --jt-border: #d0d4d9;
+    --jt-text: #1f2328;
+    --jt-muted: #5d6670;
+    --jt-faint: #8a939c;
+    --jt-accent: #2f6fd0;
+    --jt-selected: #2f6fd0;
+    --jt-selected-text: #ffffff;
+    --jt-hover: #e9eef6;
+    --jt-row-alt: #fafbfc;
+    --jt-critical: #c62f2f;
+    --jt-critical-bg: #fbecec;
+    --jt-warning: #8a5a00;
+    --jt-warning-bg: #fdf4e1;
+    --jt-info: #2b5a8f;
+    --jt-info-bg: #eaf2fb;
+    --jt-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --jt-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --jt-state-runnable: #2e9e4f;
+    --jt-state-waiting: #d9a21b;
+    --jt-state-timed: #e07b26;
+    --jt-state-blocked: #c62f2f;
+    --jt-state-new: #6f55c9;
+    --jt-state-other: #7c858e;
+    --jt-brand: #0e7c86;   /* the jheapo website's teal */
+    --jt-brand-text: #0e7c86;
+    --jt-tree-width: 34%;
+    --jt-top-height: 48%;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 480px;
+    background: var(--jt-bg);
+    color: var(--jt-text);
+    font: 13px/1.4 var(--jt-sans);
+}
+
+@media (prefers-color-scheme: dark) {
+    .jt-app {
+        --jt-brand-text: #2ec2cf;   /* the jheapo website's lighter teal for dark backgrounds */
+        --jt-bg: #16181b;
+        --jt-panel: #1e2125;
+        --jt-border: #353a40;
+        --jt-text: #e3e6e9;
+        --jt-muted: #a3abb3;
+        --jt-faint: #7b848c;
+        --jt-accent: #6ea2f0;
+        --jt-selected: #2f5fa8;
+        --jt-hover: #252b33;
+        --jt-row-alt: #1a1d20;
+        --jt-critical: #f07a7a;
+        --jt-critical-bg: #3a1f1f;
+        --jt-warning: #e8b964;
+        --jt-warning-bg: #352a17;
+        --jt-info: #8fbcf0;
+        --jt-info-bg: #1b2a3c;
+    }
+}
+
+body:has(> .jt-app) {
+    margin: 0;
+}
+
+.jt-app *,
+.jt-app *::before,
+.jt-app *::after {
+    box-sizing: border-box;
+}
+
+/* Toolbar and status bar */
+
+.jt-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--jt-border);
+    background: var(--jt-panel);
+}
+
+.jt-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--jt-brand-text);
+    font-weight: 700;
+    font-size: 15px;
+    margin-right: 8px;
+}
+
+.jt-brand-logo {
+    display: block;
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+    border-radius: 7px;
+    background: var(--jt-brand);
+}
+
+.jt-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border: 1px solid var(--jt-border);
+    border-radius: 4px;
+    background: var(--jt-bg);
+    color: var(--jt-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.jt-button:hover:not(:disabled) {
+    background: var(--jt-hover);
+}
+
+.jt-button:disabled {
+    color: var(--jt-faint);
+    cursor: default;
+}
+
+.jt-button-primary {
+    border-color: var(--jt-accent);
+    color: var(--jt-accent);
+    font-weight: 600;
+}
+
+.jt-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.jt-button:focus-within,
+.jt-button:focus-visible {
+    outline: 2px solid var(--jt-accent);
+    outline-offset: 1px;
+}
+
+.jt-status {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 12px;
+    border-top: 1px solid var(--jt-border);
+    background: var(--jt-panel);
+    color: var(--jt-muted);
+    font-size: 12px;
+}
+
+.jt-status a {
+    color: inherit;
+}
+
+/* Main area: tree | content on top, detail underneath */
+
+.jt-main {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: var(--jt-tree-width) 5px 1fr;
+    grid-template-rows: var(--jt-top-height) 5px 1fr;
+    grid-template-areas:
+        "tree vsplit content"
+        "hsplit hsplit hsplit"
+        "detail detail detail";
+}
+
+.jt-tree {
+    grid-area: tree;
+    overflow: auto;
+    padding: 4px 0;
+}
+
+/* The empty tree is a place to drop files, or click to choose them. */
+.jt-drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    height: calc(100% - 16px);
+    min-height: 140px;
+    margin: 4px 12px 12px;
+    padding: 16px;
+    border: 2px dashed var(--jt-border);
+    border-radius: 8px;
+    color: var(--jt-muted);
+    text-align: center;
+    cursor: pointer;
+}
+
+.jt-drop-zone:hover,
+.jt-app.jt-dragging .jt-drop-zone {
+    border-color: var(--jt-accent);
+    color: var(--jt-accent);
+}
+
+.jt-drop-zone-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.jt-drop-zone-hint {
+    font-size: 12px;
+}
+
+.jt-content {
+    grid-area: content;
+    overflow: auto;
+    min-width: 0;
+}
+
+.jt-detail {
+    grid-area: detail;
+    overflow: auto;
+    padding: 12px 16px;
+}
+
+.jt-splitter {
+    background: var(--jt-panel);
+    border: 0 solid var(--jt-border);
+}
+
+.jt-splitter-vertical {
+    grid-area: vsplit;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    cursor: col-resize;
+}
+
+.jt-splitter-horizontal {
+    grid-area: hsplit;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    cursor: row-resize;
+}
+
+/* Tree */
+
+.jt-tree ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.jt-tree ul ul {
+    padding-left: 16px;
+}
+
+.jt-node {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+}
+
+.jt-node:hover {
+    background: var(--jt-hover);
+}
+
+.jt-node[aria-selected="true"] {
+    background: var(--jt-selected);
+    color: var(--jt-selected-text);
+}
+
+.jt-node:focus-visible {
+    outline: 2px solid var(--jt-accent);
+    outline-offset: -2px;
+}
+
+.jt-twisty {
+    width: 12px;
+    flex: none;
+    text-align: center;
+    color: var(--jt-muted);
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.jt-node[aria-selected="true"] .jt-twisty {
+    color: inherit;
+}
+
+.jt-icon {
+    width: 14px;
+    flex: none;
+    text-align: center;
+    font-size: 12px;
+}
+
+/* Tables */
+
+.jt-table-tools {
+    min-height: 37px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: var(--jt-bg);
+    border-bottom: 1px solid var(--jt-border);
+}
+
+.jt-table-tools input[type="search"],
+.jt-table-tools input[type="number"] {
+    font: inherit;
+    padding: 2px 6px;
+    border: 1px solid var(--jt-border);
+    border-radius: 4px;
+    background: var(--jt-bg);
+    color: var(--jt-text);
+}
+
+.jt-table-tools input[type="search"] {
+    width: min(320px, 60%);
+}
+
+.jt-table-tools input[type="number"] {
+    width: 64px;
+}
+
+.jt-count {
+    color: var(--jt-muted);
+    font-size: 12px;
+}
+
+.jt-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+.jt-table th {
+    position: sticky;
+    top: 37px;
+    z-index: 1;
+    padding: 4px 8px;
+    background: var(--jt-panel);
+    border-bottom: 1px solid var(--jt-border);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+}
+
+.jt-table th[aria-sort="ascending"]::after {
+    content: " \25B2";
+    font-size: 9px;
+}
+
+.jt-table th[aria-sort="descending"]::after {
+    content: " \25BC";
+    font-size: 9px;
+}
+
+.jt-table td {
+    padding: 3px 8px;
+    border-bottom: 1px solid transparent;
+}
+
+.jt-table td.jt-number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.jt-table tbody tr:nth-child(even) {
+    background: var(--jt-row-alt);
+}
+
+.jt-table tbody tr:hover {
+    background: var(--jt-hover);
+}
+
+.jt-table tbody tr[aria-selected="true"] {
+    background: var(--jt-selected);
+    color: var(--jt-selected-text);
+}
+
+.jt-table tbody tr:focus-visible {
+    outline: 2px solid var(--jt-accent);
+    outline-offset: -2px;
+}
+
+/* A row JThread flags as a concern is painted red; a virtual thread is set in italics. */
+.jt-row-concern td {
+    color: var(--jt-critical);
+}
+
+.jt-row-concern td:first-child {
+    box-shadow: inset 3px 0 0 var(--jt-critical);
+}
+
+.jt-table tbody tr[aria-selected="true"].jt-row-concern td {
+    color: var(--jt-selected-text);
+}
+
+.jt-row-virtual td {
+    font-style: italic;
+}
+
+/* Tree table: a monitor opens into its groups of threads, a group into its threads */
+.jt-table .jt-twisty {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.jt-table tr[aria-level="2"] td:first-child {
+    padding-left: 26px;
+}
+
+.jt-table tr[aria-level="3"] td:first-child {
+    padding-left: 46px;
+}
+
+.jt-table tr[aria-level="4"] td:first-child {
+    padding-left: 66px;
+}
+
+.jt-table tr[aria-level="5"] td:first-child {
+    padding-left: 86px;
+}
+
+.jt-row-group .jt-row-label {
+    font-weight: 600;
+}
+
+.jt-row-note {
+    margin-left: 12px;
+    color: var(--jt-muted);
+    font-family: var(--jt-mono);
+    font-size: 12px;
+}
+
+.jt-row-concern .jt-row-note,
+.jt-table tbody tr[aria-selected="true"] .jt-row-note,
+.jt-table tbody tr[aria-selected="true"] .jt-twisty {
+    color: inherit;
+}
+
+/* Detail pane: a thread, a monitor, a deadlock */
+
+.jt-stack {
+    margin: 0;
+    font: 12px/1.5 var(--jt-mono);
+    white-space: pre;
+    tab-size: 4;
+}
+
+.jt-line-header {
+    font-weight: 700;
+}
+
+.jt-line-jdk {
+    color: var(--jt-muted);
+}
+
+.jt-line-lock {
+    color: var(--jt-info);
+}
+
+.jt-line-note {
+    color: var(--jt-critical);
+    font-weight: 700;
+}
+
+.jt-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--jt-accent);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.jt-detail h2,
+.jt-pane h2 {
+    margin: 0 0 8px;
+    font-size: 15px;
+}
+
+.jt-detail h3,
+.jt-pane h3 {
+    margin: 16px 0 6px;
+    font-size: 13px;
+}
+
+.jt-detail ul {
+    margin: 4px 0;
+    padding-left: 20px;
+}
+
+.jt-muted {
+    color: var(--jt-muted);
+}
+
+.jt-placeholder {
+    color: var(--jt-muted);
+}
+
+/* Overview and other panes in the content area */
+
+.jt-pane {
+    padding: 14px 16px;
+    max-width: 960px;
+}
+
+.jt-subtitle {
+    margin: -4px 0 12px;
+    color: var(--jt-muted);
+}
+
+.jt-state-bar {
+    display: flex;
+    height: 22px;
+    border: 1px solid var(--jt-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.jt-state-bar span {
+    display: block;
+    height: 100%;
+}
+
+.jt-state-RUNNABLE { background: var(--jt-state-runnable); }
+.jt-state-WAITING { background: var(--jt-state-waiting); }
+.jt-state-TIMED_WAITING { background: var(--jt-state-timed); }
+.jt-state-BLOCKED { background: var(--jt-state-blocked); }
+.jt-state-NEW { background: var(--jt-state-new); }
+.jt-state-OTHER { background: var(--jt-state-other); }
+
+.jt-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin: 6px 0 14px;
+    font-size: 12px;
+}
+
+.jt-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    border-radius: 2px;
+    vertical-align: -1px;
+}
+
+.jt-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 6px 16px;
+    margin: 0 0 14px;
+}
+
+.jt-stats div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--jt-border);
+}
+
+.jt-stats dt {
+    color: var(--jt-muted);
+}
+
+.jt-stats dd {
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.jt-hint {
+    margin: 0 0 8px;
+    padding: 8px 12px;
+    border-left: 4px solid var(--jt-info);
+    border-radius: 3px;
+    background: var(--jt-info-bg);
+}
+
+.jt-hint-warning {
+    border-left-color: var(--jt-critical);
+    background: var(--jt-critical-bg);
+}
+
+.jt-hint-critical {
+    border-left-color: var(--jt-critical);
+    background: var(--jt-critical-bg);
+}
+
+.jt-hint .jt-link {
+    margin-left: 4px;
+}
+
+.jt-block {
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--jt-border);
+    border-radius: 4px;
+    background: var(--jt-panel);
+    font: 12px/1.45 var(--jt-mono);
+    white-space: pre;
+    overflow: auto;
+}
+
+.jt-welcome {
+    padding: 28px 24px;
+    max-width: 640px;
+}
+
+.jt-welcome-start {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+    max-width: 900px;
+}
+
+.jt-welcome-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.jt-welcome h1 {
+    margin: 0 0 8px;
+    font-size: 20px;
+}
+
+.jt-welcome p {
+    margin: 0 0 10px;
+}
+
+.jt-welcome code {
+    font-family: var(--jt-mono);
+    font-size: 12px;
+}
+
+.jt-error {
+    color: var(--jt-critical);
+}
+
+.jt-drop-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(47, 111, 208, 0.12);
+    border: 3px dashed var(--jt-accent);
+    color: var(--jt-accent);
+    font-size: 18px;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.jt-app.jt-dragging .jt-drop-overlay {
+    display: flex;
+}
+
+@media (max-width: 720px) {
+    .jt-main {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(140px, 30%) minmax(200px, 40%) 5px 1fr;
+        grid-template-areas: "tree" "content" "hsplit" "detail";
+    }
+
+    .jt-splitter-vertical {
+        display: none;
+    }
+}
+
+/* Custom categories editor */
+
+.jt-category-list {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.jt-category-list li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--jt-border);
+}
+
+.jt-examples {
+    margin-top: 24px;
+}
+
+.jt-examples .jt-category-list li {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.jt-rule-text,
+.jt-rule-marker {
+    font: 12px/1.45 var(--jt-mono);
+    color: var(--jt-muted);
+}
+
+.jt-rule-marker {
+    margin: 4px 0 0;
+    white-space: pre;
+}
+
+.jt-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0 0 12px;
+    font-weight: 600;
+}
+
+.jt-field input,
+.jt-field textarea,
+.jt-rule-form select,
+.jt-rule-pattern {
+    font: inherit;
+    font-weight: 400;
+    padding: 3px 6px;
+    border: 1px solid var(--jt-border);
+    border-radius: 4px;
+    background: var(--jt-bg);
+    color: var(--jt-text);
+}
+
+.jt-field textarea {
+    font-family: var(--jt-mono);
+    font-size: 12px;
+    resize: vertical;
+}
+
+.jt-category-name {
+    max-width: 360px;
+}
+
+.jt-rule-form {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--jt-border);
+    border-radius: 4px;
+    background: var(--jt-panel);
+}
+
+.jt-rule-junction {
+    margin: 0 0 8px;
+}
+
+.jt-rule-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 6px;
+}
+
+.jt-rule-pattern {
+    flex: 1 1 220px;
+    min-width: 160px;
+    font-family: var(--jt-mono);
+    font-size: 12px;
+}
+
+.jt-rule-flag {
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.jt-rule-group {
+    margin: 6px 0 8px;
+    padding: 8px 10px;
+    border: 1px dashed var(--jt-border);
+    border-radius: 4px;
+    background: var(--jt-bg);
+}
+
+.jt-rule-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.jt-button-small {
+    padding: 2px 8px;
+    font-size: 12px;
+}
+
+.jt-rule-status {
+    min-height: 20px;
+    margin: 0 0 8px;
+}
+
+.jt-rule-help {
+    font-size: 12px;
+}
+

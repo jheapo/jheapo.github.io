@@ -1,17 +1,17 @@
 /*
- * threadsee - the HTML5 page. A client of js/model.js: it reads files, asks the model
- * for dumps and analyses, and draws them in TDA's layout. Dump text is only ever
- * inserted as text, never as HTML.
+ * jthread - the HTML5 page. A client of js/model.js: it reads files, asks the model
+ * for dumps and analyses, and draws them: dump tree top left, table top right, thread
+ * text below. Dump text is only ever inserted as text, never as HTML.
  *
- * Derived from TDA - Thread Dump Analyzer (https://github.com/irockel/tda), LGPL-2.1.
+ * Licensed under the Lesser GNU General Public License 2.1 or later; see LICENSE and NOTICE.
  */
 (function (root) {
     'use strict';
 
     /** Raised by one every time a changed view.js is delivered; shown in the status bar to tell which copy is loaded. */
-    const VIEW_BUILD = 17;
+    const VIEW_BUILD = 21;
 
-    const model = root.ThreadSee;
+    const model = root.JThread;
     const JDK_FRAME = /^\s*at (java|javax|jdk|sun|com\.sun)\./;
     const LOCK_ADDRESS = /<([^>]+)>/;
     const STATE_ORDER = ['RUNNABLE', 'WAITING', 'TIMED_WAITING', 'BLOCKED', 'NEW'];
@@ -38,7 +38,7 @@
         }
 
         link(text, action) {
-            const button = this.el('button', 'ts-link', text);
+            const button = this.el('button', 'jt-link', text);
             button.type = 'button';
             button.addEventListener('click', function (event) {
                 event.stopPropagation();
@@ -75,10 +75,10 @@
         threadClasses(thread) {
             const classes = [];
             if (this.concerns.threads.has(thread)) {
-                classes.push('ts-row-concern');
+                classes.push('jt-row-concern');
             }
             if (thread.isVirtual) {
-                classes.push('ts-row-virtual');
+                classes.push('jt-row-virtual');
             }
             return classes;
         }
@@ -88,7 +88,7 @@
         }
     }
 
-    /** A sortable, filterable table with a selected row, as in TDA's right-hand pane. */
+    /** A sortable, filterable table with a selected row, in the right-hand pane. */
     class DataTable {
         constructor(dom, columns, rows, options) {
             this.dom = dom;
@@ -103,17 +103,17 @@
         }
 
         render(container) {
-            const tools = this.dom.el('div', 'ts-table-tools');
+            const tools = this.dom.el('div', 'jt-table-tools');
             if (this.options.extraTools) {
                 tools.appendChild(this.options.extraTools);
             }
             if (this.options.filterText) {
                 tools.appendChild(this.searchBox());
             }
-            this.counter = this.dom.el('span', 'ts-count');
+            this.counter = this.dom.el('span', 'jt-count');
             tools.appendChild(this.counter);
             container.appendChild(tools);
-            this.table = this.dom.el('table', 'ts-table');
+            this.table = this.dom.el('table', 'jt-table');
             this.table.appendChild(this.head());
             this.body = this.dom.el('tbody');
             this.table.appendChild(this.body);
@@ -201,7 +201,7 @@
             }
             for (const column of this.columns) {
                 const value = column.value(row);
-                const cell = this.dom.el('td', column.numeric ? 'ts-number' : null, column.display ? column.display(row) : value);
+                const cell = this.dom.el('td', column.numeric ? 'jt-number' : null, column.display ? column.display(row) : value);
                 element.appendChild(cell);
             }
             element.addEventListener('click', () => this.select(row));
@@ -313,15 +313,15 @@
         }
 
         childElement(child) {
-            const element = this.dom.el('tr', 'ts-row-child');
+            const element = this.dom.el('tr', 'jt-row-child');
             child.rowClasses().forEach(function (name) { element.classList.add(name); });
             element.tabIndex = -1;
             const cell = this.dom.el('td');
             cell.colSpan = this.columns.length;
-            cell.appendChild(this.dom.el('span', 'ts-row-label', child.label()));
+            cell.appendChild(this.dom.el('span', 'jt-row-label', child.label()));
             const note = child.note();
             if (note !== '') {
-                cell.appendChild(this.dom.el('span', 'ts-row-note', note));
+                cell.appendChild(this.dom.el('span', 'jt-row-note', note));
             }
             element.appendChild(cell);
             element.addEventListener('click', () => this.select(child));
@@ -330,7 +330,7 @@
         }
 
         twisty(row, hasChildren) {
-            const twisty = this.dom.el('span', 'ts-twisty', hasChildren ? (this.open.has(row) ? '▾' : '▸') : '');
+            const twisty = this.dom.el('span', 'jt-twisty', hasChildren ? (this.open.has(row) ? '▾' : '▸') : '');
             if (hasChildren) {
                 twisty.addEventListener('click', (event) => {
                     event.stopPropagation();
@@ -414,7 +414,7 @@
         }
 
         rowClasses() {
-            return ['ts-row-group'];
+            return ['jt-row-group'];
         }
 
         children() {
@@ -510,7 +510,7 @@
 
         showMessage(message) {
             this.dom.clear(this.container);
-            this.container.appendChild(this.dom.el('p', 'ts-placeholder', message));
+            this.container.appendChild(this.dom.el('p', 'jt-placeholder', message));
         }
 
         showThread(thread, analysis) {
@@ -519,13 +519,13 @@
         }
 
         threadText(thread, analysis) {
-            const pre = this.dom.el('pre', 'ts-stack');
+            const pre = this.dom.el('pre', 'jt-stack');
             thread.lines.forEach((line, index) => {
                 pre.appendChild(this.line(line, index === 0, analysis));
                 pre.appendChild(this.dom.text('\n'));
             });
             if (thread.carrierStuckInApplicationCode) {
-                pre.appendChild(this.dom.el('span', 'ts-line-note', 'Note: the carrier thread seems to be stuck in application code.'));
+                pre.appendChild(this.dom.el('span', 'jt-line-note', 'The carrier thread appears to be stuck in application code.'));
             }
             return pre;
         }
@@ -533,19 +533,19 @@
         line(text, isHeader, analysis) {
             const trimmed = text.trim();
             if (isHeader) {
-                return this.dom.el('span', 'ts-line-header', text);
+                return this.dom.el('span', 'jt-line-header', text);
             }
             if (trimmed.startsWith('- ')) {
                 return this.lockLine(text, analysis);
             }
             if (trimmed.startsWith('Carrying virtual thread')) {
-                return this.dom.el('span', 'ts-line-note', text);
+                return this.dom.el('span', 'jt-line-note', text);
             }
-            return this.dom.el('span', JDK_FRAME.test(text) ? 'ts-line-jdk' : null, text);
+            return this.dom.el('span', JDK_FRAME.test(text) ? 'jt-line-jdk' : null, text);
         }
 
         lockLine(text, analysis) {
-            const span = this.dom.el('span', 'ts-line-lock');
+            const span = this.dom.el('span', 'jt-line-lock');
             const found = LOCK_ADDRESS.exec(text);
             const monitor = found === null ? null : analysis.monitors.find(found[1]);
             if (monitor === null) {
@@ -562,23 +562,37 @@
         showMonitor(monitor, analysis) {
             this.dom.clear(this.container);
             this.container.appendChild(this.dom.el('h2', null, 'Monitor ' + monitor.label()));
-            this.container.appendChild(this.dom.el('p', 'ts-muted', plural(monitor.waiters.length, 'thread') + ' waiting to lock it, '
-                + monitor.sleepers.length + ' waiting on it (Object.wait() or parked).'));
-            if (monitor.lockingThreads().length === 0) {
-                this.container.appendChild(this.dom.el('p', null, this.noHolderText(monitor, analysis)));
-            }
+            this.container.appendChild(this.dom.el('p', null, this.monitorSummary(monitor, analysis)));
             for (const holder of monitor.lockingThreads()) {
                 this.container.appendChild(this.dom.el('h3', null, 'Stack of ' + holder.label()));
                 this.container.appendChild(this.threadText(holder, analysis));
             }
         }
 
+        /** "Held by lock-holder; 8 waiting to lock, 2 waiting on it." Counts of zero are left out. */
+        monitorSummary(monitor, analysis) {
+            const counts = [];
+            if (monitor.waiters.length > 0) {
+                counts.push(monitor.waiters.length + ' waiting to lock');
+            }
+            if (monitor.sleepers.length > 0) {
+                counts.push(monitor.sleepers.length + ' waiting on it');
+            }
+            const holders = monitor.lockingThreads();
+            if (holders.length > 0) {
+                return 'Held by ' + holders.map(function (thread) { return thread.label(); }).join(', ')
+                    + (counts.length > 0 ? '; ' + counts.join(', ') : '') + '.';
+            }
+            const tail = counts.join(', ');
+            return this.noHolderText(monitor, analysis) + (tail === '' ? '' : ' ' + tail.charAt(0).toUpperCase() + tail.substring(1) + '.');
+        }
+
         noHolderText(monitor, analysis) {
             if (monitor.waiters.length === 0) {
-                return 'No thread holds it. The threads under it in the table wait on it for an event (a notify, a signal, a count-down or a result), not to acquire it.';
+                return 'No holder; its threads wait for an event, not to acquire it.';
             }
             if (analysis.dump.format === model.DumpFormat.JCMD_TEXT) {
-                return 'No thread holds it in this dump. It might be held by a VM thread, or it is a lock whose owner the JVM did not print.';
+                return 'No holder recorded; possibly a VM thread.';
             }
             return 'No thread holds this monitor. It might be held by a VM thread, or it is a java.util.concurrent lock in a dump taken without lock information (jstack -l).';
         }
@@ -590,7 +604,7 @@
             for (const thread of threads) {
                 const item = this.dom.el('li');
                 item.appendChild(this.dom.el('span', null, thread.label()));
-                item.appendChild(this.dom.el('span', 'ts-muted', '  ' + (thread.frames[0] || thread.threadState)));
+                item.appendChild(this.dom.el('span', 'jt-muted', '  ' + (thread.frames[0] || thread.threadState)));
                 list.appendChild(item);
             }
             this.container.appendChild(list);
@@ -600,10 +614,10 @@
             this.dom.clear(this.container);
             this.container.appendChild(this.dom.el('h2', null, 'Deadlock No. ' + number));
             if (report.foundBy !== 'JVM') {
-                this.container.appendChild(this.dom.el('p', 'ts-muted',
-                    'Found by JThread by following each blocked thread to the thread holding the monitor or lock it waits for. This dump format carries no deadlock report from the JVM.'));
+                this.container.appendChild(this.dom.el('p', 'jt-muted',
+                    'Calculated from the lock lines.'));
             }
-            const pre = this.dom.el('pre', 'ts-stack');
+            const pre = this.dom.el('pre', 'jt-stack');
             for (const line of report.lines) {
                 pre.appendChild(this.deadlockLine(line, analysis));
                 pre.appendChild(this.dom.text('\n'));
@@ -618,7 +632,7 @@
             const quoted = /"([^"]+)"/.exec(text);
             const thread = quoted === null ? null : analysis.threadNamed(quoted[1]);
             if (thread === null) {
-                return this.dom.el('span', JDK_FRAME.test(text) ? 'ts-line-jdk' : null, text);
+                return this.dom.el('span', JDK_FRAME.test(text) ? 'jt-line-jdk' : null, text);
             }
             const span = this.dom.el('span');
             span.appendChild(this.dom.text(text.substring(0, quoted.index)));
@@ -630,7 +644,7 @@
         showOccurrences(entry, analyses) {
             this.dom.clear(this.container);
             this.container.appendChild(this.dom.el('h2', null, entry.thread.label()));
-            this.container.appendChild(this.dom.el('p', 'ts-muted',
+            this.container.appendChild(this.dom.el('p', 'jt-muted',
                 'Unchanged in ' + entry.occurrences.length + ' dumps' + this.cpuSummary(entry) + '.'));
             for (const thread of entry.occurrences) {
                 const analysis = analyses.find(function (candidate) { return candidate.dump.threads.indexOf(thread) >= 0; });
@@ -722,7 +736,7 @@
 
         /** The tree node whose row contains the element, or null. */
         nodeAt(element) {
-            const row = element && element.closest ? element.closest('.ts-node') : null;
+            const row = element && element.closest ? element.closest('.jt-node') : null;
             return row === null ? null : (this.nodes.get(row) || null);
         }
 
@@ -754,12 +768,12 @@
 
         item(node) {
             const item = this.dom.el('li');
-            const row = this.dom.el('div', 'ts-node');
+            const row = this.dom.el('div', 'jt-node');
             row.setAttribute('role', 'treeitem');
             row.tabIndex = node === this.selected ? 0 : -1;
             row.setAttribute('aria-selected', node === this.selected || this.marked.has(node) ? 'true' : 'false');
             this.nodes.set(row, node);
-            const twisty = this.dom.el('span', 'ts-twisty', node.children.length === 0 ? '' : (node.expanded ? '▾' : '▸'));
+            const twisty = this.dom.el('span', 'jt-twisty', node.children.length === 0 ? '' : (node.expanded ? '▾' : '▸'));
             if (node.children.length > 0) {
                 row.setAttribute('aria-expanded', String(node.expanded));
                 twisty.addEventListener('click', (event) => {
@@ -768,8 +782,8 @@
                 });
             }
             row.appendChild(twisty);
-            row.appendChild(this.dom.el('span', 'ts-icon', node.icon));
-            row.appendChild(this.dom.el('span', 'ts-label', node.label));
+            row.appendChild(this.dom.el('span', 'jt-icon', node.icon));
+            row.appendChild(this.dom.el('span', 'jt-label', node.label));
             row.addEventListener('click', (event) => {
                 if ((event.metaKey || event.ctrlKey) && node.closable) {
                     this.mark(node);
@@ -849,16 +863,16 @@
     }
 
     /** The page: wires the toolbar, the tree, the content pane and the detail pane together. */
-    class ThreadSeeApp {
+    class JThreadApp {
         constructor(document) {
             this.document = document;
             this.dom = new Dom(document);
-            this.appElement = document.getElementById('threadsee');
-            this.content = document.getElementById('ts-content');
-            this.status = document.getElementById('ts-status');
-            this.closeButton = document.getElementById('ts-close');
-            this.detail = new DetailView(this.dom, document.getElementById('ts-detail'), this);
-            this.tree = new TreeView(this.dom, document.getElementById('ts-tree'), (node) => this.nodeSelected(node), this.dropZone());
+            this.appElement = document.getElementById('jthread');
+            this.content = document.getElementById('jt-content');
+            this.status = document.getElementById('jt-status');
+            this.closeButton = document.getElementById('jt-close');
+            this.detail = new DetailView(this.dom, document.getElementById('jt-detail'), this);
+            this.tree = new TreeView(this.dom, document.getElementById('jt-tree'), (node) => this.nodeSelected(node), this.dropZone());
             this.analyses = new Map();
             this.currentTable = null;
             this.categories = new CategoryStore(root.localStorage);
@@ -867,25 +881,25 @@
 
         /** What the tree shows while nothing is open: a place to drop files, which also opens the file chooser. */
         dropZone() {
-            const zone = this.dom.el('label', 'ts-drop-zone');
-            zone.htmlFor = 'ts-file';
-            zone.appendChild(this.dom.el('span', 'ts-drop-zone-title', 'Drop thread dump files here'));
-            zone.appendChild(this.dom.el('span', 'ts-drop-zone-hint', 'or click to choose them'));
+            const zone = this.dom.el('label', 'jt-drop-zone');
+            zone.htmlFor = 'jt-file';
+            zone.appendChild(this.dom.el('span', 'jt-drop-zone-title', 'Drop thread dump files here'));
+            zone.appendChild(this.dom.el('span', 'jt-drop-zone-hint', 'or click to choose them'));
             return zone;
         }
 
         start() {
-            this.document.querySelector('.ts-status span').appendChild(this.dom.text(' \u00B7 view.js build ' + VIEW_BUILD));
+            this.document.querySelector('.jt-status span').appendChild(this.dom.text(' \u00B7 view.js build ' + VIEW_BUILD));
             this.wireToolbar();
             this.wireDragAndDrop();
-            new SplitterDrag(this.appElement, this.document.getElementById('ts-main')).wire(
-                this.document.getElementById('ts-split-vertical'), this.document.getElementById('ts-split-horizontal'));
+            new SplitterDrag(this.appElement, this.document.getElementById('jt-main')).wire(
+                this.document.getElementById('jt-split-vertical'), this.document.getElementById('jt-split-horizontal'));
             this.tree.render();
             this.showWelcome();
         }
 
         wireToolbar() {
-            const input = this.document.getElementById('ts-file');
+            const input = this.document.getElementById('jt-file');
             input.addEventListener('change', () => {
                 if (input.files.length > 0) {
                     this.openFiles(Array.from(input.files));
@@ -893,7 +907,7 @@
                 input.value = '';
             });
             this.closeButton.addEventListener('click', () => this.closeSelection());
-            this.document.getElementById('ts-categories').addEventListener('click', () => this.showCategoryEditor());
+            this.document.getElementById('jt-categories').addEventListener('click', () => this.showCategoryEditor());
         }
 
         wireDragAndDrop() {
@@ -901,19 +915,19 @@
             this.document.addEventListener('dragenter', (event) => {
                 event.preventDefault();
                 depth++;
-                this.appElement.classList.add('ts-dragging');
+                this.appElement.classList.add('jt-dragging');
             });
             this.document.addEventListener('dragleave', () => {
                 depth = Math.max(0, depth - 1);
                 if (depth === 0) {
-                    this.appElement.classList.remove('ts-dragging');
+                    this.appElement.classList.remove('jt-dragging');
                 }
             });
             this.document.addEventListener('dragover', (event) => event.preventDefault());
             this.document.addEventListener('drop', (event) => {
                 event.preventDefault();
                 depth = 0;
-                this.appElement.classList.remove('ts-dragging');
+                this.appElement.classList.remove('jt-dragging');
                 if (event.dataTransfer && event.dataTransfer.files.length > 0) {
                     const node = this.tree.nodeAt(event.target);
                     if (node === null) {
@@ -959,7 +973,7 @@
         }
 
         noDumpMessage(log) {
-            return 'No thread dump was found in ' + log.name + '. JThread reads the output of jstack, jcmd Thread.print and kill -3 (starting with the line "Full thread dump") and the file written by jcmd Thread.dump_to_file, as plain text or JSON.';
+            return 'No thread dump in ' + log.name + '. Expected jstack, jcmd Thread.print, kill -3 or Thread.dump_to_file output.';
         }
 
         open(sources) {
@@ -1077,7 +1091,7 @@
             if (groups.every(function (group) { return group.container === null; })) {
                 return;
             }
-            const note = 'Grouped by the code that started them: this dump does not name its thread containers.';
+            const note = 'Containers inferred from the starting code.';
             groups.forEach((group, index) => {
                 const title = containerLabel(group.container || 'no container');
                 virtual.add(new TreeNode(title + ' (' + plural(group.threads.length, 'Virtual Thread') + ')', '\u25E6',
@@ -1096,7 +1110,7 @@
             this.tree.selected = null;
             this.tree.render();
             const target = this.equivalentNode(roots, selectedDump, selectedKey);
-            if (target !== null && this.content.querySelector('.ts-category-editor') === null) {
+            if (target !== null && this.content.querySelector('.jt-category-editor') === null) {
                 this.tree.select(target);
             } else if (target !== null) {
                 this.tree.selected = target;
@@ -1179,14 +1193,14 @@
 
         showWelcome() {
             this.dom.clear(this.content);
-            const welcome = this.dom.el('div', 'ts-welcome ts-welcome-start');
-            const pane = this.dom.el('div', 'ts-welcome-text');
+            const welcome = this.dom.el('div', 'jt-welcome jt-welcome-start');
+            const pane = this.dom.el('div', 'jt-welcome-text');
             welcome.appendChild(pane);
             pane.appendChild(this.dom.el('h1', null, 'Analyse Java thread dumps in your browser'));
             pane.appendChild(this.dom.el('p', null, 'Open one or more files that contain HotSpot thread dumps from JDK 8 or later.'));
             pane.appendChild(this.dom.el('p', null, 'Use jstack -l <pid> or jcmd <pid> Thread.print -l to include the owners of java.util.concurrent locks.'));
-            pane.appendChild(this.dom.el('p', null, 'On JDK 21 and later, jcmd <pid> Thread.dump_to_file [-format=json] <file> also dumps the virtual threads, as plain text or JSON.'));
-            pane.appendChild(this.dom.el('p', 'ts-muted', 'All data remains local.'));
+            pane.appendChild(this.dom.el('p', null, 'For JDK 21+, jcmd <pid> Thread.dump_to_file [-format=json] <file> dumps the virtual threads, as plain text or JSON.'));
+            pane.appendChild(this.dom.el('p', 'jt-muted', 'All data remains local.'));
             this.content.appendChild(welcome);
             this.detail.showMessage('');
         }
@@ -1194,19 +1208,19 @@
         showError(message) {
             this.status.textContent = '';
             this.dom.clear(this.content);
-            const pane = this.dom.el('div', 'ts-welcome');
-            pane.appendChild(this.dom.el('p', 'ts-error', message));
+            const pane = this.dom.el('div', 'jt-welcome');
+            pane.appendChild(this.dom.el('p', 'jt-error', message));
             this.content.appendChild(pane);
         }
 
         showSet(log) {
             const dumps = log.dumps;
-            const pane = this.dom.el('div', 'ts-pane');
+            const pane = this.dom.el('div', 'jt-pane');
             pane.appendChild(this.dom.el('h2', null, this.logLabel(log)));
-            pane.appendChild(this.dom.el('p', 'ts-subtitle',
+            pane.appendChild(this.dom.el('p', 'jt-subtitle',
                 plural(log.dumps.length, 'thread dump') + ' in ' + plural(log.sources.length, 'file') + (log.sources.length > 1 ? ', in timestamp order' : '')));
             if (log.filesWithoutDumps.length > 0) {
-                pane.appendChild(this.dom.el('p', 'ts-error', 'No thread dump was found in ' + log.filesWithoutDumps.join(', ') + '.'));
+                pane.appendChild(this.dom.el('p', 'jt-error', 'No thread dump was found in ' + log.filesWithoutDumps.join(', ') + '.'));
             }
             this.content.appendChild(pane);
             const columns = [
@@ -1220,7 +1234,7 @@
             ].filter(function (column) { return column.title !== 'File' || log.sources.length > 1; });
             const table = new DataTable(this.dom, columns, dumps, {
                 noun: 'dump',
-                rowClasses: (dump) => this.analysisOf(log, dump).hasConcerns() ? ['ts-row-concern'] : [],
+                rowClasses: (dump) => this.analysisOf(log, dump).hasConcerns() ? ['jt-row-concern'] : [],
                 onSelect: (dump) => this.tree.select(this.analysisOf(log, dump).node)
             });
             table.render(this.content);
@@ -1247,7 +1261,7 @@
                 noun: 'thread',
                 filterText: function (thread) { return thread.text(); },
                 filterPlaceholder: 'Filter by name or stack text',
-                extraTools: note ? this.dom.el('span', 'ts-muted', note) : null,
+                extraTools: note ? this.dom.el('span', 'jt-muted', note) : null,
                 rowClasses: function (thread) { return analysis.threadClasses(thread); },
                 onSelect: (thread) => this.detail.showThread(thread, analysis)
             });
@@ -1265,7 +1279,7 @@
                 noun: 'monitor',
                 filterText: function (monitor) { return monitor.label(); },
                 filterPlaceholder: 'Filter by address or class',
-                rowClasses: function (monitor) { return analysis.concerns.monitors.has(monitor) ? ['ts-row-concern'] : []; },
+                rowClasses: function (monitor) { return analysis.concerns.monitors.has(monitor) ? ['jt-row-concern'] : []; },
                 onSelect: (monitor) => this.detail.showMonitor(monitor, analysis),
                 children: (monitor) => [
                     new MonitorThreads('Locked by', monitor.lockingThreads(), this.detail, analysis),
@@ -1288,7 +1302,7 @@
                 noun: 'chain',
                 filterText: function (chain) { return chain.root.label() + ' ' + chain.behind.map(function (thread) { return thread.label(); }).join(' '); },
                 filterPlaceholder: 'Filter by thread name',
-                rowClasses: function (chain) { return analysis.threadClasses(chain.root).filter(function (name) { return name === 'ts-row-concern'; }); },
+                rowClasses: function (chain) { return analysis.threadClasses(chain.root).filter(function (name) { return name === 'jt-row-concern'; }); },
                 onSelect: (chain) => this.detail.showThread(chain.root, analysis),
                 children: (chain) => chain.waitersOf(chain.root).map((thread) => new ChainThread(chain, thread, this.detail, analysis))
             });
@@ -1302,7 +1316,7 @@
                 { title: 'Threads', value: function (report) { return report.threadNames.join(', '); } }
             ], reports, {
                 noun: 'deadlock',
-                rowClasses: function () { return ['ts-row-concern']; },
+                rowClasses: function () { return ['jt-row-concern']; },
                 onSelect: (report) => this.detail.showDeadlock(report, reports.indexOf(report) + 1, analysis)
             });
             this.currentTable.render(this.content);
@@ -1383,7 +1397,8 @@
 
         load() {
             try {
-                const json = this.storage === undefined || this.storage === null ? null : this.storage.getItem(CATEGORY_KEY);
+                const json = this.storage === undefined || this.storage === null ? null
+                    : (this.storage.getItem(CATEGORY_KEY) || this.storage.getItem(EARLIER_CATEGORY_KEY));
                 this.categories = json === null ? [] : this.file.categories(json);
             } catch (error) {
                 this.problem = 'Saved categories could not be read: ' + error.message;
@@ -1430,7 +1445,8 @@
         }
     }
 
-    const CATEGORY_KEY = 'threadsee.categories';
+    const CATEGORY_KEY = 'jthread.categories';
+    const EARLIER_CATEGORY_KEY = 'threadsee.categories';   // the project's earlier name; read until categories are saved again
     const PARTS = [['name', 'Name'], ['frame', 'Any frame'], ['top', 'Top frame'], ['lock', 'Any lock line'], ['text', 'Whole thread'], ['is', 'Thread is']];
     const ACTIVITIES = [['active', 'active'], ['idle', 'idle'], ['jvm', 'a JVM thread']];
 
@@ -1543,7 +1559,7 @@
             this.dom = dom;
             this.form = form;
             this.onChange = onChange;
-            this.container = dom.el('div', 'ts-rule-form');
+            this.container = dom.el('div', 'jt-rule-form');
         }
 
         render() {
@@ -1552,7 +1568,7 @@
             for (const item of this.form.items) {
                 this.container.appendChild(item instanceof FormGroup ? this.groupBox(item) : this.conditionRow(item, this.form.items));
             }
-            const buttons = this.dom.el('div', 'ts-rule-buttons');
+            const buttons = this.dom.el('div', 'jt-rule-buttons');
             buttons.appendChild(this.button('+ Condition', () => this.form.items.push(new FormCondition())));
             buttons.appendChild(this.button('+ Group', () => this.form.items.push(new FormGroup('or', [new FormCondition(), new FormCondition()]))));
             this.container.appendChild(buttons);
@@ -1567,7 +1583,7 @@
         }
 
         button(text, action) {
-            const button = this.dom.el('button', 'ts-button ts-button-small', text);
+            const button = this.dom.el('button', 'jt-button jt-button-small', text);
             button.type = 'button';
             button.addEventListener('click', () => {
                 action();
@@ -1577,7 +1593,7 @@
         }
 
         junctionLine(owner, prefix) {
-            const line = this.dom.el('div', 'ts-rule-junction');
+            const line = this.dom.el('div', 'jt-rule-junction');
             line.appendChild(this.dom.text(prefix));
             line.appendChild(this.select([['and', 'all'], ['or', 'any']], owner.junction, (value) => { owner.junction = value; }, false));
             line.appendChild(this.dom.text(' of these:'));
@@ -1585,12 +1601,12 @@
         }
 
         groupBox(group) {
-            const box = this.dom.el('div', 'ts-rule-group');
+            const box = this.dom.el('div', 'jt-rule-group');
             box.appendChild(this.junctionLine(group, 'Group: '));
             for (const condition of group.conditions) {
                 box.appendChild(this.conditionRow(condition, group.conditions));
             }
-            const buttons = this.dom.el('div', 'ts-rule-buttons');
+            const buttons = this.dom.el('div', 'jt-rule-buttons');
             buttons.appendChild(this.button('+ Condition', () => group.conditions.push(new FormCondition())));
             buttons.appendChild(this.button('Remove group', () => this.form.items.splice(this.form.items.indexOf(group), 1)));
             box.appendChild(buttons);
@@ -1598,7 +1614,7 @@
         }
 
         conditionRow(condition, siblings) {
-            const row = this.dom.el('div', 'ts-rule-row');
+            const row = this.dom.el('div', 'jt-rule-row');
             row.appendChild(this.select(PARTS, condition.part, (value) => { condition.part = value; }, true));
             const verbs = condition.part === 'is' ? [['is', 'is'], ['not', 'is not']] : [['is', 'matches'], ['not', 'does not match']];
             row.appendChild(this.select(verbs, condition.negated ? 'not' : 'is', (value) => { condition.negated = value === 'not'; }, false));
@@ -1628,7 +1644,7 @@
         }
 
         patternInput(condition) {
-            const input = this.dom.el('input', 'ts-rule-pattern');
+            const input = this.dom.el('input', 'jt-rule-pattern');
             input.type = 'text';
             input.placeholder = 'regular expression, e.g. ^pool-';
             input.value = condition.pattern;
@@ -1640,7 +1656,7 @@
         }
 
         ignoreCase(condition) {
-            const label = this.dom.el('label', 'ts-rule-flag');
+            const label = this.dom.el('label', 'jt-rule-flag');
             const box = this.dom.el('input');
             box.type = 'checkbox';
             box.checked = condition.flags.indexOf('i') >= 0;
@@ -1664,7 +1680,7 @@
 
         render(container) {
             this.container = container;
-            this.pane = this.dom.el('div', 'ts-pane ts-category-editor');
+            this.pane = this.dom.el('div', 'jt-pane jt-category-editor');
             container.appendChild(this.pane);
             this.showList(null);
         }
@@ -1672,7 +1688,7 @@
         showList(message) {
             this.dom.clear(this.pane);
             this.pane.appendChild(this.dom.el('h2', null, 'Custom categories'));
-            this.pane.appendChild(this.dom.el('p', 'ts-subtitle', 'Each category appears under every dump in the tree. Categories are kept in this browser; export them to keep or share them.'));
+            this.pane.appendChild(this.dom.el('p', 'jt-subtitle', 'Each category appears under every dump in the tree. Categories are kept in this browser; export them to keep or share them.'));
             this.note(message, this.app.categories.problem);
             this.pane.appendChild(this.listButtons());
             this.pane.appendChild(this.categoryList());
@@ -1682,15 +1698,15 @@
 
         note(message, problem) {
             if (problem) {
-                this.pane.appendChild(this.dom.el('p', 'ts-error', problem));
+                this.pane.appendChild(this.dom.el('p', 'jt-error', problem));
             }
             if (message) {
-                this.pane.appendChild(this.dom.el('p', 'ts-muted', message));
+                this.pane.appendChild(this.dom.el('p', 'jt-muted', message));
             }
         }
 
         listButtons() {
-            const buttons = this.dom.el('div', 'ts-rule-buttons');
+            const buttons = this.dom.el('div', 'jt-rule-buttons');
             buttons.appendChild(this.action('New category', () => this.showEditor(null)));
             buttons.appendChild(this.importButton());
             const exportButton = this.action('Export', () => this.exportFile());
@@ -1700,7 +1716,7 @@
         }
 
         action(text, handler) {
-            const button = this.dom.el('button', 'ts-button', text);
+            const button = this.dom.el('button', 'jt-button', text);
             button.type = 'button';
             button.addEventListener('click', handler);
             return button;
@@ -1709,28 +1725,28 @@
         categoryList() {
             const categories = this.app.categories.list();
             if (categories.length === 0) {
-                return this.dom.el('p', 'ts-muted', 'No custom categories yet.');
+                return this.dom.el('p', 'jt-muted', 'No custom categories yet.');
             }
-            const list = this.dom.el('ul', 'ts-category-list');
+            const list = this.dom.el('ul', 'jt-category-list');
             for (const category of categories) {
                 const item = this.dom.el('li');
                 item.appendChild(this.dom.link(category.name, () => this.showEditor(category)));
-                item.appendChild(this.dom.el('code', 'ts-rule-text', category.rule.text()));
+                item.appendChild(this.dom.el('code', 'jt-rule-text', category.rule.text()));
                 list.appendChild(item);
             }
             return list;
         }
 
         exampleList() {
-            const section = this.dom.el('div', 'ts-examples');
+            const section = this.dom.el('div', 'jt-examples');
             section.appendChild(this.dom.el('h3', null, 'Examples'));
-            section.appendChild(this.dom.el('p', 'ts-muted', 'Use one as it is or as a starting point for your own. Nothing is added until you save it.'));
-            const list = this.dom.el('ul', 'ts-category-list');
+            section.appendChild(this.dom.el('p', 'jt-muted', 'Use one as it is or as a starting point for your own. Nothing is added until you save it.'));
+            const list = this.dom.el('ul', 'jt-category-list');
             for (const example of new model.CategoryExamples().list()) {
                 const item = this.dom.el('li');
                 item.appendChild(this.dom.el('strong', null, example.name));
-                item.appendChild(this.dom.el('span', 'ts-muted', example.purpose));
-                item.appendChild(this.dom.el('code', 'ts-rule-text', example.rule));
+                item.appendChild(this.dom.el('span', 'jt-muted', example.purpose));
+                item.appendChild(this.dom.el('code', 'jt-rule-text', example.rule));
                 item.appendChild(this.action('Use this', () => this.showExample(example)));
                 list.appendChild(item);
             }
@@ -1747,8 +1763,8 @@
         }
 
         importButton() {
-            const label = this.dom.el('label', 'ts-button', 'Import…');
-            const input = this.dom.el('input', 'ts-file-input');
+            const label = this.dom.el('label', 'jt-button', 'Import…');
+            const input = this.dom.el('input', 'jt-file-input');
             input.type = 'file';
             input.accept = '.json,application/json';
             input.addEventListener('change', () => {
@@ -1766,7 +1782,7 @@
                 categories = new model.CategoryFile().categories(json);
             } catch (error) {
                 this.showList(null);
-                this.pane.insertBefore(this.dom.el('p', 'ts-error', 'Could not import ' + name + ': ' + error.message), this.pane.children[2]);
+                this.pane.insertBefore(this.dom.el('p', 'jt-error', 'Could not import ' + name + ': ' + error.message), this.pane.children[2]);
                 return;
             }
             this.app.categories.importAll(categories);
@@ -1778,7 +1794,7 @@
             const blob = new Blob([this.app.categories.json()], { type: 'application/json' });
             const link = this.dom.el('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'threadsee-categories.json';
+            link.download = 'jthread-categories.json';
             this.pane.appendChild(link);
             link.click();
             link.remove();
@@ -1789,20 +1805,20 @@
             this.editing = category;
             this.dom.clear(this.pane);
             this.pane.appendChild(this.dom.el('h2', null, category === null ? 'New category' : 'Edit category'));
-            this.nameInput = this.labelled('Name', this.dom.el('input', 'ts-category-name'));
+            this.nameInput = this.labelled('Name', this.dom.el('input', 'jt-category-name'));
             this.nameInput.type = 'text';
             this.nameInput.value = category === null ? '' : category.name;
             this.form = new RuleForm();
             this.formView = new RuleFormView(this.dom, this.form, (text) => this.formChanged(text));
             this.pane.appendChild(this.formView.render());
-            this.ruleText = this.labelled('Rule', this.dom.el('textarea', 'ts-rule-input'));
+            this.ruleText = this.labelled('Rule', this.dom.el('textarea', 'jt-rule-input'));
             this.ruleText.rows = 3;
             this.ruleText.spellcheck = false;
             this.ruleText.addEventListener('input', () => this.textChanged());
-            this.status = this.dom.el('div', 'ts-rule-status');
+            this.status = this.dom.el('div', 'jt-rule-status');
             this.pane.appendChild(this.status);
             this.pane.appendChild(this.editorButtons(category));
-            this.pane.appendChild(this.dom.el('p', 'ts-muted ts-rule-help',
+            this.pane.appendChild(this.dom.el('p', 'jt-muted jt-rule-help',
                 'Rule syntax: name, frame, top, lock or text ~ /regex/ (add i after the closing / to ignore case), is active | idle | jvm, combined with and, or, not and parentheses. Frames are matched as printed, without "at".'));
             this.ruleText.value = category === null ? '' : category.rule.text();
             this.textChanged();
@@ -1810,7 +1826,7 @@
         }
 
         labelled(text, control) {
-            const label = this.dom.el('label', 'ts-field');
+            const label = this.dom.el('label', 'jt-field');
             label.appendChild(this.dom.el('span', null, text));
             label.appendChild(control);
             this.pane.appendChild(label);
@@ -1818,7 +1834,7 @@
         }
 
         editorButtons(category) {
-            const buttons = this.dom.el('div', 'ts-rule-buttons');
+            const buttons = this.dom.el('div', 'jt-rule-buttons');
             buttons.appendChild(this.action('Save', () => this.saveCategory()));
             buttons.appendChild(this.action('Cancel', () => this.showList(null)));
             if (category !== null) {
@@ -1836,7 +1852,7 @@
             if (this.ruleText.value.trim() === '') {
                 this.form.junction = 'and';
                 this.form.items = [new FormCondition()];
-                this.formView.container.classList.remove('ts-disabled');
+                this.formView.container.classList.remove('jt-disabled');
                 this.formView.render();
                 this.preview('', false);
                 return;
@@ -1845,10 +1861,10 @@
             if (rule === null) {
                 return;
             }
-            this.formView.container.classList.toggle('ts-disabled', !this.form.fill(rule));
-            if (this.formView.container.classList.contains('ts-disabled')) {
+            this.formView.container.classList.toggle('jt-disabled', !this.form.fill(rule));
+            if (this.formView.container.classList.contains('jt-disabled')) {
                 this.dom.clear(this.formView.container);
-                this.formView.container.appendChild(this.dom.el('p', 'ts-muted', 'This rule nests deeper than the form can show; edit it as text.'));
+                this.formView.container.appendChild(this.dom.el('p', 'jt-muted', 'Too deeply nested for the form; edit as text.'));
             } else {
                 this.formView.render();
             }
@@ -1858,7 +1874,7 @@
         preview(text, fromText) {
             this.dom.clear(this.status);
             if (text.trim() === '' && !fromText) {
-                this.status.appendChild(this.dom.el('span', 'ts-muted', 'Fill in a condition.'));
+                this.status.appendChild(this.dom.el('span', 'jt-muted', 'Fill in a condition.'));
                 return null;
             }
             try {
@@ -1875,8 +1891,8 @@
         }
 
         showError(text, error) {
-            this.status.appendChild(this.dom.el('div', 'ts-error', 'Position ' + error.position + ': ' + error.message));
-            const marker = this.dom.el('pre', 'ts-rule-marker');
+            this.status.appendChild(this.dom.el('div', 'jt-error', 'Position ' + error.position + ': ' + error.message));
+            const marker = this.dom.el('pre', 'jt-rule-marker');
             marker.textContent = text + '\n' + ' '.repeat(error.position) + '^';
             this.status.appendChild(marker);
             this.app.detail.showMessage('');
@@ -1894,7 +1910,7 @@
         showMatches(rule) {
             const analysis = this.previewAnalysis();
             if (analysis === null) {
-                this.status.appendChild(this.dom.el('span', 'ts-muted', 'The rule is valid. Open a thread dump to see which threads it selects.'));
+                this.status.appendChild(this.dom.el('span', 'jt-muted', 'Valid. Open a dump to see what it selects.'));
                 this.app.detail.showMessage('');
                 return;
             }
@@ -1913,7 +1929,7 @@
                 category = new model.CustomCategory(name, this.ruleText.value);
             } catch (error) {
                 this.dom.clear(this.status);
-                this.status.appendChild(this.dom.el('div', 'ts-error', error instanceof model.RuleError ? 'Position ' + error.position + ': ' + error.message : error.message));
+                this.status.appendChild(this.dom.el('div', 'jt-error', error instanceof model.RuleError ? 'Position ' + error.position + ': ' + error.message : error.message));
                 return;
             }
             this.app.categories.put(category, this.editing === null ? null : this.editing.name);
@@ -1928,7 +1944,7 @@
         }
     }
 
-    /** The overview of one dump: state distribution, counts, TDA's hints and heap information. */
+    /** The overview of one dump: state distribution, counts, hints and heap information. */
     class OverviewPane {
         constructor(dom, app, analysis) {
             this.dom = dom;
@@ -1938,12 +1954,12 @@
 
         render(container) {
             const dump = this.analysis.dump;
-            const pane = this.dom.el('div', 'ts-pane');
+            const pane = this.dom.el('div', 'jt-pane');
             pane.appendChild(this.dom.el('h2', null, 'Thread Dump Overview'));
-            pane.appendChild(this.dom.el('p', 'ts-subtitle', dump.title() + ' · ' + dump.vmInfo));
+            pane.appendChild(this.dom.el('p', 'jt-subtitle', dump.title() + ' · ' + dump.vmInfo));
             this.formatNote(pane);
             if (dump.isBeforeJdk8()) {
-                pane.appendChild(this.hint({ severity: 'warning', text: 'This dump comes from a JVM older than JDK 8. JThread supports JDK 8 and later, so some details may be missing or wrong.' }));
+                pane.appendChild(this.hint({ severity: 'warning', text: 'Analysis of thread dumps from JVMs older than JDK 8 may be wrong.' }));
             }
             if (dump.threads.some(function (thread) { return thread.threadState !== '' || thread.headerState !== ''; })) {
                 pane.appendChild(this.dom.el('h3', null, 'Thread State Distribution (' + plural(dump.threads.length, 'thread') + ')'));
@@ -1961,17 +1977,17 @@
                 return;
             }
             const hasStates = dump.threads.some(function (thread) { return thread.threadState !== ''; });
-            const text = hasStates
-                ? 'Written by jcmd Thread.dump_to_file. This format has no thread priorities, native ids, CPU times or JVM deadlock report; JThread looks for deadlocks itself in the lock lines.'
-                : 'Written by jcmd Thread.dump_to_file on a JDK that records neither thread states nor locks, so only the threads and their stacks can be shown. Later JDKs (JDK 27, for one) add both.';
+            const text = 'Written by ' + dump.command + (hasStates
+                ? ', missing thread priorities, native thread ids, CPU times and deadlock report, calculating deadlocks from the lock lines.'
+                : ', missing thread states, lock lines, thread priorities, native thread ids, CPU times and deadlock report.');
             pane.appendChild(this.hint({ severity: 'info', text: text }));
         }
 
         stateBar(pane) {
             const counts = this.analysis.categories.stateDistribution();
             const total = this.analysis.dump.threads.length;
-            const bar = this.dom.el('div', 'ts-state-bar');
-            const legend = this.dom.el('div', 'ts-legend');
+            const bar = this.dom.el('div', 'jt-state-bar');
+            const legend = this.dom.el('div', 'jt-legend');
             let other = total;
             for (const state of STATE_ORDER) {
                 const count = counts.get(state) || 0;
@@ -1987,12 +2003,12 @@
             if (count <= 0) {
                 return;
             }
-            const part = this.dom.el('span', 'ts-state-' + state);
+            const part = this.dom.el('span', 'jt-state-' + state);
             part.style.width = (count * 100 / total) + '%';
             part.title = state + ': ' + count;
             bar.appendChild(part);
             const key = this.dom.el('span');
-            key.appendChild(this.dom.el('i', 'ts-state-' + state));
+            key.appendChild(this.dom.el('i', 'jt-state-' + state));
             key.appendChild(this.dom.text(state + ' (' + count + ')'));
             legend.appendChild(key);
         }
@@ -2000,7 +2016,7 @@
         stats() {
             const categories = this.analysis.categories;
             const dump = this.analysis.dump;
-            const list = this.dom.el('dl', 'ts-stats');
+            const list = this.dom.el('dl', 'jt-stats');
             const add = (label, value) => {
                 const row = this.dom.el('div');
                 row.appendChild(this.dom.el('dt', null, label));
@@ -2032,7 +2048,7 @@
         }
 
         hint(hint) {
-            const box = this.dom.el('p', 'ts-hint ts-hint-' + hint.severity, hint.text);
+            const box = this.dom.el('p', 'jt-hint jt-hint-' + hint.severity, hint.text);
             if (hint.target && this.app.categoryNode(this.analysis, hint.target) !== null) {
                 box.appendChild(this.dom.link('Show', () => this.app.navigate(this.analysis, hint.target)));
             }
@@ -2044,11 +2060,11 @@
                 return;
             }
             pane.appendChild(this.dom.el('h3', null, 'Heap'));
-            pane.appendChild(this.dom.el('pre', 'ts-block', this.analysis.dump.heapLines.join('\n')));
+            pane.appendChild(this.dom.el('pre', 'jt-block', this.analysis.dump.heapLines.join('\n')));
         }
     }
 
-    /** TDA's long running thread detection over all the dumps of one log file. */
+    /** Long running thread detection over all the dumps of one log file. */
     class LongRunningPane {
         constructor(dom, app, log) {
             this.dom = dom;
@@ -2080,12 +2096,12 @@
                 onSelect: (entry) => this.app.detail.showOccurrences(entry, this.analyses)
             });
             table.render(this.container);
-            this.app.detail.showMessage('Threads whose stack is identical in at least ' + this.minimum + ' of the ' + this.log.dumps.length
-                + ' dumps, compared with the first dump. A large CPU change means the thread is running in the same place; none means it is blocked or idle.');
+            this.app.detail.showMessage('Stacks unchanged in at least ' + this.minimum + ' of ' + this.log.dumps.length
+                + ' dumps. A large CPU change implies the thread is running, none implies the thread is blocked or idle.');
         }
 
         minimumInput() {
-            const label = this.dom.el('label', 'ts-count', 'Unchanged in at least ');
+            const label = this.dom.el('label', 'jt-count', 'Unchanged in at least ');
             const input = this.dom.el('input');
             input.type = 'number';
             input.min = '2';
@@ -2114,11 +2130,11 @@
         wire(vertical, horizontal) {
             this.follow(vertical, (event, box) => {
                 const percent = clamp((event.clientX - box.left) * 100 / box.width, 15, 70);
-                this.appElement.style.setProperty('--ts-tree-width', percent + '%');
+                this.appElement.style.setProperty('--jt-tree-width', percent + '%');
             });
             this.follow(horizontal, (event, box) => {
                 const percent = clamp((event.clientY - box.top) * 100 / box.height, 15, 85);
-                this.appElement.style.setProperty('--ts-top-height', percent + '%');
+                this.appElement.style.setProperty('--jt-top-height', percent + '%');
             });
         }
 
@@ -2141,5 +2157,5 @@
         return Math.min(high, Math.max(low, value));
     }
 
-    new ThreadSeeApp(root.document).start();
+    new JThreadApp(root.document).start();
 }(window));

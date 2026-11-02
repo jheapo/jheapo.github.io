@@ -1,0 +1,11 @@
+JThread
+Licensed under the GNU Lesser General Public License 2.1 or later; see LICENSE.
+
+JThread includes material derived from TDA - Thread Dump Analyzer
+(https://github.com/irockel/tda) by Ingo Rockel and contributors, licensed under the
+GNU Lesser General Public License 2.1 or later:
+
+- the thread dump parsing and analysis rules in js/model.js, rewritten in JavaScript;
+- these test dumps in test/dumps: carrier_stuck.log, java11dump.log, java21dump.log,
+  java21dump_utf16.log, java8dump.log, jdk11_long_running.log, jdk6-three-dumps.log,
+  jstack_dump.log.

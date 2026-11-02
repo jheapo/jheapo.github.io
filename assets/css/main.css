@@ -409,7 +409,7 @@ code { font-family: var(--mono); }
 
 /* JThread (/jthread/): the thread dump analyser fills the window below the sticky header;
    the footer follows below the fold. */
-.jthread-page .ts-app { height: calc(100vh - 65px); }
+.jthread-page .jt-app { height: calc(100vh - 65px); }
 /* On the JThread page the page name in the header is the site's teal, as in the tool's toolbar. */
 .site-header:has(~ main .jthread-page) .brand-name { color: var(--brand); }
 @media (prefers-color-scheme: dark) {
