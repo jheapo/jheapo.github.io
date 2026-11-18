@@ -1,0 +1,37 @@
+---
+layout: newsite
+title: "JScrub"
+permalink: /homepage/jscrub/
+noindex: true
+stylesheets: [/assets/css/variant.css]
+description: "JScrub product page of the new site: the JScrub panel from the current home page."
+---
+<!-- The JScrub panel of the current home page (index.html), copied as it is. Its title is the page's h1. -->
+<section class="section" id="jscrub">
+  <div class="wrap">
+    <img class="jscrub-mark" src="{{ '/assets/img/jscrub-duke.png' | relative_url }}" alt="JScrub — Duke holding a mop">
+    <h1 class="section-title">JScrub — Safely Share Heap Dumps</h1>
+    <p class="section-lede">
+      A heap dump is a full copy of your application's memory — personal data and all.
+      JScrub anonymizes it so 3rd parties can analyze the heap without being
+      exposed to private data.
+    </p>
+    <div class="jscrub-flow">
+      <div class="jscrub-step">
+        <h3>No inference</h3>
+        <p>JScrub anonymizes class, field and method names, not just the values — so the dump gives away neither data nor its meaning.</p>
+      </div>
+      <div class="jscrub-step">
+        <h3>Your data never leaves home</h3>
+        <p>Anonymization runs on your own infrastructure; the raw dump never leaves it. Personal data stays with you and you alone.</p>
+      </div>
+      <div class="jscrub-step">
+        <h3>You hold the key</h3>
+        <p>JScrub can re-identify a JHeapo report back to real values for readability — but the key stays with you.</p>
+      </div>
+    </div>
+    <div class="jscrub-cta">
+      <a class="btn btn-primary" href="{{ site.jscrub_url }}">Download JScrub</a>
+    </div>
+  </div>
+</section>

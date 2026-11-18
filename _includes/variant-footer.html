@@ -1,0 +1,35 @@
+{% assign footer = page.footer | default: layout.footer %}
+<footer class="v-footer">
+  <div class="v-wrap v-footer-cols{% if footer == "rows" %} v-footer-cols--rows{% endif %}">
+    <div>
+      <h2 class="v-footer-head">Products</h2>
+      <ul>
+        {% for p in site.data.lineup %}
+        {% assign link = p.href %}{% if p.href_1a %}{% if layout.newsite or page.hero == "memory" %}{% assign link = p.href_1a %}{% endif %}{% endif %}
+        <li><a href="{{ link | relative_url }}">{{ p.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div>
+      <h2 class="v-footer-head">Services</h2>
+      <ul>
+        <li><a href="{% if layout.newsite %}{{ '/homepage/contact/' | relative_url }}?about=Consulting{% else %}{{ '/services/' | relative_url }}{% endif %}">Consulting</a></li>
+        {% unless footer == "rows" %}<li><a href="{{ '/license/' | relative_url }}">Enterprise</a></li>{% endunless %}
+        <li><a href="{% if layout.newsite %}{{ '/homepage/contact/' | relative_url }}?about=Training{% else %}{{ '/services/' | relative_url }}{% endif %}">Training</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="v-footer-head">Company</h2>
+      <ul>
+        <li><a href="{% if layout.newsite %}{{ '/homepage/about/' | relative_url }}{% else %}{{ '/about/' | relative_url }}{% endif %}">About</a></li>
+        <li><a href="{% if layout.newsite %}{{ '/homepage/contact/' | relative_url }}{% else %}mailto:{{ site.contact_email }}{% endif %}">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="v-wrap v-footer-legal">
+    {% if layout.newsite %}<a href="{{ '/homepage/terms/' | relative_url }}">Terms</a>
+    <a href="{{ '/homepage/privacy/' | relative_url }}">Privacy</a>
+    <a href="{{ '/homepage/refunds/' | relative_url }}">Refunds</a>{% else %}<a href="{{ '/terms/' | relative_url }}">Terms</a>{% endif %}
+    <span>&copy; {{ 'now' | date: "%Y" }} {{ site.author }}</span>
+  </div>
+</footer>

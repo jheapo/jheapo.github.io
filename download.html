@@ -1,0 +1,43 @@
+---
+layout: default
+title: Download
+permalink: /download/
+description: Download JHeapo for macOS, Linux and Windows.
+---
+
+<section class="section download-top">
+  <div class="wrap download-hero">
+    <img class="jheapo-mark" src="{{ '/assets/img/jheapo-mark.svg' | relative_url }}" alt="JHeapo">
+    <p class="eyebrow">Download</p>
+    <h1 class="section-title">JHeapo</h1>
+    <p class="section-lede download-version">Version {{ site.data.release.version }}</p>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="download-table-wrap">
+      <table class="download-table">
+        <thead>
+          <tr><th>Bundle</th><th>Architecture</th><th></th></tr>
+        </thead>
+        {% for package in site.data.downloads %}
+        <tbody>
+          {% for f in package.files %}
+          <tr>
+            {% if forloop.first %}<th scope="rowgroup" rowspan="{{ package.files.size }}">{{ package.name }}</th>{% endif %}
+            <td>{{ f.architecture }}</td>
+            <td><a class="btn download-btn" href="{{ site.releases_url }}{{ f.file }}"
+                title="{{ f.file }}">Download</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% endfor %}
+      </table>
+    </div>
+    <p class="download-check">
+      <a href="{{ site.releases_url }}SHA256SUMS">SHA256SUMS</a> &middot;
+      <a href="{{ '/license/' | relative_url }}">Acquire a licence</a>
+    </p>
+  </div>
+</section>

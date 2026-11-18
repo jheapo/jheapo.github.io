@@ -1,0 +1,15 @@
+---
+layout: newsite
+title: "Terms"
+permalink: /homepage/terms/
+noindex: true
+stylesheets: [/assets/css/variant.css]
+description: "Terms page of the new site: the JHeapo terms of use."
+---
+{% comment %} The same text as the current /terms/ page: _includes/terms.md. {% endcomment %}
+{% capture terms %}{% include terms.md %}{% endcapture %}
+<section class="section">
+  <div class="wrap prose">
+    {{ terms | markdownify }}
+  </div>
+</section>

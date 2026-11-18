@@ -1,0 +1,34 @@
+---
+layout: newsite
+title: "Licences"
+permalink: /homepage/licence/
+noindex: true
+stylesheets: [/assets/css/variant.css]
+description: "Licence page of the new site: which products need a licence and how to acquire one."
+---
+{% comment %} Simple text to edit. The checkout (Paddle) is not on this page yet: a licence is acquired through the contact page. {% endcomment %}
+<section class="section">
+  <div class="wrap prose">
+    <h1>Licences</h1>
+
+    <table class="v-licence-table">
+      <thead>
+        <tr><th>Product</th><th>Licence</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">JHeapo Desktop</th><td>Paid licence. Without a licence, JHeapo shows the Overview of a heap dump, so you can evaluate it.</td></tr>
+        <tr><th scope="row">JHeapo MCP</th><td>Paid licence. A JHeapo MCP licence also runs JHeapo Desktop.</td></tr>
+        <tr><th scope="row">GCSee</th><td>Free to use.</td></tr>
+        <tr><th scope="row">JScrub</th><td>Free to use.</td></tr>
+        <tr><th scope="row">JThread</th><td>Free to use.</td></tr>
+        <tr><th scope="row">Enterprise</th><td>Site-wide use of the products, with support. <a href="{{ '/homepage/contact/' | relative_url }}?about=Enterprise">Contact us</a>.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Acquire a licence</h2>
+    <p>Contact us for a JHeapo Desktop or JHeapo MCP licence.</p>
+    <p><a class="btn btn-primary" href="{{ '/homepage/contact/' | relative_url }}?about=Licence">Contact us</a></p>
+
+    <p>The <a href="{{ '/homepage/terms/' | relative_url }}">terms of use</a> and the <a href="{{ '/homepage/refunds/' | relative_url }}">refund policy</a> apply to every licence.</p>
+  </div>
+</section>

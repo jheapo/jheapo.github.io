@@ -1,0 +1,61 @@
+---
+layout: newsite
+title: "Privacy"
+permalink: /homepage/privacy/
+noindex: true
+stylesheets: [/assets/css/variant.css]
+description: "Privacy page of the new site: what personal data this site handles, who receives it and how long it is kept."
+---
+{% comment %} Text to edit, not reviewed by a lawyer. It follows the list Paddle gives for a seller's privacy notice:
+     who is responsible, a contact, the data with its purpose and legal basis, the recipients, how long data is
+     kept, the visitor's rights, security and cookies. No street address is given, by decision (2026-11-17). {% endcomment %}
+<section class="section">
+  <div class="wrap prose">
+    <h1>Privacy</h1>
+
+    <h2>Who is responsible</h2>
+    <p>This site and the products on it are run by {{ site.author }}, of British Columbia, Canada. He decides how the personal data described here is used.</p>
+    <p>For any question about your personal data, use the <a href="{{ '/homepage/contact/' | relative_url }}">contact page</a>.</p>
+
+    <h2>Your heap dumps, GC logs and thread dumps</h2>
+    <p>JHeapo, GCSee and JScrub run on your computer. The files you analyse stay on your computer.</p>
+    <p>JThread runs in your browser. It reads your thread dumps in the page and does not upload them.</p>
+
+    <h2>The personal data we handle</h2>
+    <table class="v-licence-table">
+      <thead>
+        <tr><th>Data</th><th>Why</th><th>Legal basis</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Contact form</th><td>Your name, email address, company and message, to answer you.</td><td>Our legitimate interest in answering your request.</td></tr>
+        <tr><th scope="row">Licence records</th><td>The customer's name and email address, the product and the licence period, to issue the licence and support it.</td><td>The contract for the licence.</td></tr>
+        <tr><th scope="row">Analytics</th><td>The pages you visit and technical data about your browser, to judge the quality of this site.</td><td>Our legitimate interest in improving the site. You can opt out.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Who receives it</h2>
+    <ul>
+      <li><strong>Paddle.</strong> Our order process is conducted by our online reseller Paddle.com. Paddle.com is the Merchant of Record for all our orders. Paddle receives your payment and billing details and handles them under <a href="https://www.paddle.com/legal/privacy">its own privacy notice</a>. We do not receive your card details.</li>
+      <li><strong>Formspree.</strong> The contact form sends your message through Formspree, a form service, which delivers it to us by email.</li>
+      <li><strong>Google.</strong> Google Analytics measures how the pages of this site are used.</li>
+      <li><strong>GitHub.</strong> GitHub hosts this site and serves the download files. It receives the requests your browser makes.</li>
+      <li><strong>Advisers and authorities.</strong> Our professional advisers, and an authority when the law requires it.</li>
+    </ul>
+
+    <h2>How long we keep it</h2>
+    <ul>
+      <li><strong>Contact messages:</strong> until the conversation is finished. Then we delete them.</li>
+      <li><strong>Licence records:</strong> for the period of the licence and for 6 months after it ends. Then we delete them.</li>
+    </ul>
+    <p>We keep no other personal data.</p>
+
+    <h2>Your rights</h2>
+    <p>You can ask what personal data we hold about you, and ask us to correct it or delete it. Use the <a href="{{ '/homepage/contact/' | relative_url }}">contact page</a>. You can also complain to the privacy authority where you live.</p>
+
+    <h2>Security</h2>
+    <p>Only we and the services named on this page have access to your personal data, and we take reasonable steps to keep it safe.</p>
+
+    <h2>Cookies</h2>
+    <p>Google Analytics sets cookies. A notice on your first visit lets you opt out, and your browser stores that choice for this site.</p>
+  </div>
+</section>

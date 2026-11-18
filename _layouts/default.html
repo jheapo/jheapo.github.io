@@ -8,5 +8,9 @@
   </main>
   {% include footer.html %}
   <script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>
+  {% if page.paddle %}
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+  <script src="{{ '/assets/js/checkout.js' | relative_url }}" defer></script>
+  {% endif %}
 </body>
 </html>

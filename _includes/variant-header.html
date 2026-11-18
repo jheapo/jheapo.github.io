@@ -1,0 +1,70 @@
+<a class="v-skip" href="#main">Skip to content</a>
+<header class="v-header" id="top">
+  <div class="v-wrap v-nav">
+    <a class="brand" href="{% if layout.newsite %}{{ '/homepage/2b/' | relative_url }}{% else %}{{ page.url | relative_url }}{% endif %}">
+      <img class="brand-mark" src="{{ '/assets/img/logo-mark.svg' | relative_url }}" alt="">
+      <span class="brand-name">JHeapo</span>
+    </a>
+
+    <button class="v-burger" type="button" aria-expanded="false" aria-controls="v-menu">
+      <span class="v-burger-bars" aria-hidden="true"></span>
+      <span class="v-sr">Menu</span>
+    </button>
+
+    {% assign menu = page.menu | default: layout.menu %}
+    {% if menu == "classic" %}
+    {% comment %} The menu of the current site (_includes/header.html), in its order. Product links go to the new product pages. {% endcomment %}
+    <nav class="v-menu" id="v-menu" aria-label="Main">
+      <ul class="v-menu-list">
+        <li><a href="{{ '/homepage/gcsee/' | relative_url }}">GCSee</a></li>
+        <li><a href="{{ '/homepage/jheapo/' | relative_url }}">JHeapo</a></li>
+        <li><a href="{{ '/homepage/jscrub/' | relative_url }}">JScrub</a></li>
+        <li><a href="{{ '/homepage/jthread/' | relative_url }}">JThread</a></li>
+        <li><a href="{{ '/homepage/contact/' | relative_url }}">Services</a></li>
+        <li><a href="{{ '/homepage/downloads/' | relative_url }}">Downloads</a></li>
+        <li><a href="{{ '/homepage/about/' | relative_url }}">About Us</a></li>
+        <li><a class="v-menu-outline" href="{{ '/homepage/contact/' | relative_url }}">Contact Us</a></li>
+      </ul>
+    </nav>
+    {% else %}
+    <nav class="v-menu" id="v-menu" aria-label="Main">
+      <ul class="v-menu-list">
+        <li class="v-has-sub">
+          <details class="v-sub">
+            <summary>Products</summary>
+            <ul class="v-sub-list">
+              {% for p in site.data.lineup %}
+              <li>
+                {% assign link = p.href %}{% if page.hero == "memory" and p.href_1a %}{% assign link = p.href_1a %}{% endif %}
+                <a href="{{ link | relative_url }}">
+                  <span class="v-sub-name">{{ p.name }}</span>
+                  <span class="v-sub-line">{% if page.hero == "memory" %}{{ p.blurb }}{% else %}{{ p.line }}{% endif %}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </details>
+          <a class="v-index-link" href="#products">Products</a>
+        </li>
+        <li class="v-has-sub">
+          <details class="v-sub">
+            <summary>Use cases</summary>
+            <ul class="v-sub-list">
+              <li><a href="#problem-capacity"><span class="v-sub-name">Infrastructure costs</span></a></li>
+              <li><a href="#problem-memory"><span class="v-sub-name">Memory and performance problems</span></a></li>
+            </ul>
+          </details>
+          <a class="v-index-link" href="#problems">Use cases</a>
+        </li>
+        <li><a href="{{ '/services/' | relative_url }}">Consulting</a></li>
+        <li><a href="{{ '/license/' | relative_url }}">Enterprise</a></li>
+        <li><a href="#stories">Stories</a></li>
+        <li><a href="{{ '/license/' | relative_url }}">Pricing</a></li>
+        {% unless page.hero == "memory" %}
+        <li class="v-menu-cta"><a class="btn btn-primary" href="{{ '/download/' | relative_url }}">Download</a></li>
+        {% endunless %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</header>

@@ -1,0 +1,24 @@
+{% comment %}
+  A screenshot from assets/img/web/, in the width and zoom behaviour of the page's variant.
+  Parameters: name (file stem, e.g. ss_entanglement), alt, caption (HTML).
+{% endcomment %}
+{% if page.width == 1 %}
+  {% assign sizes = "(min-width: 1218px) 1120px, 92vw" %}
+{% else %}
+  {% assign sizes = "(min-width: 1460px) 1400px, 96vw" %}
+{% endif %}
+{% capture base %}/assets/img/web/{{ include.name }}{% endcapture %}
+<figure class="v-figure">
+  <div class="v-band">
+    {% if page.width == 3 %}<a class="v-zoom" href="{{ base | append: '-2800.webp' | relative_url }}" data-alt="{{ include.alt }}" aria-label="Enlarge: {{ include.alt }}">{% endif %}
+    <picture>
+      <source type="image/webp"
+              srcset="{{ base | append: '-1400.webp' | relative_url }} 1400w, {{ base | append: '-2800.webp' | relative_url }} 2800w"
+              sizes="{{ sizes }}">
+      <img src="{{ base | append: '-1400.png' | relative_url }}" width="1400" height="{{ include.height }}"
+           alt="{{ include.alt }}" loading="lazy" decoding="async">
+    </picture>
+    {% if page.width == 3 %}<span class="v-zoom-hint" aria-hidden="true">Enlarge</span></a>{% endif %}
+  </div>
+  <figcaption class="v-col"><p class="v-caption">{{ include.caption }}</p></figcaption>
+</figure>

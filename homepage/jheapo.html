@@ -1,0 +1,28 @@
+---
+layout: newsite
+title: "JHeapo"
+permalink: /homepage/jheapo/
+noindex: true
+stylesheets: [/assets/css/variant.css]
+description: "JHeapo product page of the new site: the JHeapo panel from the current home page."
+---
+<!-- The JHeapo panel of the current home page (index.html), copied as it is. Its title is the page's h1. -->
+<section class="section" id="features">
+  <div class="wrap">
+    <img class="jheapo-mark" src="{{ '/assets/img/jheapo-mark.svg' | relative_url }}" alt="JHeapo">
+    <h1 class="section-title">JHeapo</h1>
+    <p class="section-lede">Everything you need to understand why your heap is large</p>
+    <div class="feature-grid">
+      {% for f in site.data.features %}
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">{{ f.icon }}</span>
+        <h3>{{ f.title }}</h3>
+        <p>{{ f.body }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="jscrub-cta">
+      <a class="btn btn-primary" href="{{ '/homepage/downloads/' | relative_url }}">Download</a>
+    </div>
+  </div>
+</section>

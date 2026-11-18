@@ -8,18 +8,38 @@ description: >-
 
 # Absolute URL of the deployed site. Leave baseurl empty when served at the
 # domain root; set it to "/jheapo" (etc.) if served from a subpath.
-url: "https://jheapo.github.io"
+url: "https://www.jheapo.com"
 baseurl: ""
 
 # External links surfaced in the nav and footer.
 docs_url: "#"          # docs live on a separate site; wire this up later
 # Where "Request a demo" / "Contact" go. Swap for a dedicated address if desired.
 contact_email: kirk.pepperdine@gmail.com
+# The URL the contact form of the new site (/homepage/contact/) posts to: a Formspree form
+# (https://formspree.io/f/...), or later our own endpoint. While it is empty the form opens the
+# visitor's mail program with the message filled in.
+contact_form_url: "https://formspree.io/f/xbgoowpj"
 # Where license requests go.
 license_email: kirk@kodewerk.com
 
+# Paddle checkout on /license/. Both values are required: checkout stays disabled
+# when environment is missing or not sandbox/production, or the token is empty.
+# The client-side token is public by design (it is in the page source either way).
+# Going live: set environment to production, use a live token (live_...), and fill
+# in the production price IDs in _data/plans.yml.
+paddle:
+  environment: sandbox      # sandbox | production
+  client_token: "test_dcda138b0fb155457fb28a26160"   # Developer tools > Authentication > client-side token (sandbox: "jheapo.com website")
+  # Which of Paddle's formatted totals each plan card shows: total (with the
+  # visitor's sales tax) or subtotal (before tax). Provisional: total.
+  display_total: total
+
 # JScrub download — GitHub latest release (always tracks the newest version).
 jscrub_url: "https://github.com/jheapo/jscrub/releases/latest"
+# JHeapo downloads (/download/): the files of the latest release on GitHub.
+releases_url: "https://github.com/jheapo/jheapo-releases/releases/latest/download/"
+# While JHeapo 1 is in beta the download page says so. Remove this line when v1 is released.
+release_beta: true
 # GCSee download link. DUMMY placeholder — resolve later.
 gcsee_url: "#"
 

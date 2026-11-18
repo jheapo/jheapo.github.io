@@ -1,0 +1,42 @@
+---
+layout: newsite
+title: "Downloads"
+permalink: /homepage/downloads/
+noindex: true
+stylesheets: [/assets/css/variant.css]
+description: "Downloads page of the new site: JHeapo Desktop, JHeapo MCP, GCSee and JScrub."
+---
+<!-- The table of the current /download/ page, with the rows in _data/newsite_downloads.yml. -->
+<section class="section download-top">
+  <div class="wrap download-hero">
+    <h1 class="section-title">Downloads</h1>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="download-table-wrap">
+      <table class="download-table">
+        <thead>
+          <tr><th>Bundle</th><th>Architecture</th><th></th></tr>
+        </thead>
+        {% for package in site.data.newsite_downloads %}
+        <tbody>
+          {% for f in package.files %}
+          <tr>
+            {% if forloop.first %}<th scope="rowgroup" rowspan="{{ package.files.size }}">{{ package.name }}{% if package.version %}<br><span class="download-version v-download-version">Version {{ site.data.release.version }}</span>{% endif %}</th>{% endif %}
+            <td>{{ f.architecture }}</td>
+            <td>{% if f.url %}<a class="btn download-btn" href="{{ f.url }}">{{ f.label }}</a>{% else %}<a class="btn download-btn" href="{{ site.releases_url }}{{ f.file }}"
+                title="{{ f.file }}">Download</a>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% endfor %}
+      </table>
+    </div>
+    <p class="download-check">
+      <a href="{{ site.releases_url }}SHA256SUMS">SHA256SUMS</a> &middot;
+      <a href="{{ '/homepage/licence/' | relative_url }}">Acquire a licence</a>
+    </p>
+  </div>
+</section>

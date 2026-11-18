@@ -1,0 +1,17 @@
+---
+layout: default
+title: Terms
+permalink: /terms/
+description: The JHeapo terms of use.
+---
+{% comment %}
+  The text is _includes/terms.md, a copy of TERMS.md in the jheapo repository, the same file
+  every download carries. Change the terms there, then copy it here:
+    cp ../jheapo/TERMS.md _includes/terms.md
+{% endcomment %}
+{% capture terms %}{% include terms.md %}{% endcapture %}
+<section class="section">
+  <div class="wrap prose">
+    {{ terms | markdownify }}
+  </div>
+</section>

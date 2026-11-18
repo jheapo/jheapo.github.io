@@ -1,0 +1,33 @@
+# The downloads on /download/ (jheapo docs/packaging.md §9, PKG16, PKG19), one table row per file.
+# Each file is fetched from site.releases_url, which always serves the latest release; the names
+# carry no version (PKG8). The page shows the version in _data/release.yml.
+- name: JHeapo Desktop
+  files:
+    - architecture: macOS, Apple silicon
+      file: jheapo-fx-macos-aarch64.dmg
+    - architecture: Linux x64
+      file: jheapo-fx-linux-x64.tar.gz
+    - architecture: Windows x64
+      file: jheapo-fx-windows-x64.zip
+    - architecture: Unbundled (JDK 25+)
+      file: jheapo-fx-light.zip
+
+- name: JHeapo Browser
+  files:
+    - architecture: macOS, Apple silicon
+      file: jheapo-browser-macos-aarch64.dmg
+    - architecture: Linux x64
+      file: jheapo-browser-linux-x64.tar.gz
+    - architecture: Windows x64
+      file: jheapo-browser-windows-x64.zip
+    - architecture: Unbundled (JDK 25+)
+      file: jheapo-browser-light.zip
+
+- name: JHeapo MCP
+  files:
+    - architecture: macOS, Apple silicon
+      file: jheapo-mcp-macos-aarch64.tar.gz
+    - architecture: Linux x64
+      file: jheapo-mcp-linux-x64.tar.gz
+    - architecture: Windows x64
+      file: jheapo-mcp-windows-x64.zip

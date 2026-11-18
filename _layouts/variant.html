@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include head.html %}
+{% comment %} A page's own front matter wins; otherwise the value comes from its layout (see _layouts/newsite.html). {% endcomment %}
+{% assign width = page.width | default: layout.width %}{% assign menus = page.menus | default: layout.menus %}{% assign text = page.text | default: layout.text %}
+<body class="v-page v-w{{ width }} v-menus-{{ menus }}{% if text %} v-text-{{ text }}{% endif %}{% if page.shots %} v-shots-{{ page.shots }}{% endif %}">
+  <script>document.documentElement.classList.add('js');</script>
+  {% include variant-header.html %}
+  <main id="main">
+    {{ content }}
+  </main>
+  {% include variant-footer.html %}
+  {% if page.width == 3 or page.hero == "memory" %}
+  <dialog class="v-lightbox" id="v-lightbox" aria-label="Enlarged screenshot">
+    <form method="dialog"><button class="v-lightbox-close" type="submit" aria-label="Close">&times;</button></form>
+    <img class="v-lightbox-img" src="" alt="">
+  </dialog>
+  {% endif %}
+  <script src="{{ '/assets/js/variant.js' | relative_url }}" defer></script>{% for script in page.scripts %}
+  <script src="{{ script | relative_url }}" defer></script>{% endfor %}
+</body>
+</html>

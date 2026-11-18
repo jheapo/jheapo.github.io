@@ -1,0 +1,36 @@
+# The downloads on /homepage/downloads/ (the new site), one table row per file.
+# A row with `file` is fetched from site.releases_url, which always serves the latest JHeapo release;
+# the names carry no version. A row with `url` opens that product's latest release page on GitHub.
+- name: JHeapo Desktop
+  version: true    # shows the version in _data/release.yml
+  files:
+    - architecture: macOS, Apple silicon
+      file: jheapo-fx-macos-aarch64.dmg
+    - architecture: Linux x64
+      file: jheapo-fx-linux-x64.tar.gz
+    - architecture: Windows x64
+      file: jheapo-fx-windows-x64.zip
+    - architecture: Unbundled (JDK 25+)
+      file: jheapo-fx-light.zip
+
+- name: JHeapo MCP
+  version: true
+  files:
+    - architecture: macOS, Apple silicon
+      file: jheapo-mcp-macos-aarch64.tar.gz
+    - architecture: Linux x64
+      file: jheapo-mcp-linux-x64.tar.gz
+    - architecture: Windows x64
+      file: jheapo-mcp-windows-x64.zip
+
+- name: GCSee
+  files:
+    - architecture: Latest release on GitHub
+      url: https://github.com/kcpeppe/gcsee/releases/latest
+      label: Release page
+
+- name: JScrub
+  files:
+    - architecture: Latest release on GitHub
+      url: https://github.com/jheapo/jscrub/releases/latest
+      label: Release page

@@ -1,0 +1,48 @@
+---
+layout: default
+title: Home page variants
+permalink: /homepage/
+noindex: true
+description: Six versions of a new home page, for comparison.
+---
+
+<style>
+  .variants { width: 100%; border-collapse: collapse; margin: 1.5rem 0 2rem; }
+  .variants th, .variants td { text-align: left; padding: .8rem 1rem .8rem 0; border-bottom: 1px solid var(--line); }
+  .variants a { font-weight: 650; }
+</style>
+
+<section class="section">
+  <div class="wrap page-body">
+    <h1>Home page variants</h1>
+    <p>Six versions of the same new home page. They differ in two ways:</p>
+    <ul>
+      <li><strong>Width (D21).</strong> 1: everything in one 1,120&nbsp;px column. 2: text in a reading column,
+        screenshots in a wider band up to 1,400&nbsp;px. 3: as 2, and clicking a screenshot opens it at full size.</li>
+      <li><strong>Phone menus (D23).</strong> A: Products and Use cases open inside the phone menu.
+        B: Products and Use cases are links to their sections on the page. Narrow the window to below
+        860&nbsp;px to see the difference.</li>
+    </ul>
+
+    <table class="variants">
+      <thead>
+        <tr><th scope="col">Width</th><th scope="col">Menus A</th><th scope="col">Menus B</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">1. One column</th>
+          <td><a href="{{ '/homepage/1a/' | relative_url }}">Variant 1A</a></td>
+          <td><a href="{{ '/homepage/1b/' | relative_url }}">Variant 1B</a></td></tr>
+        <tr><th scope="row">2. Text column and wide screenshots</th>
+          <td><a href="{{ '/homepage/2a/' | relative_url }}">Variant 2A</a></td>
+          <td><a href="{{ '/homepage/2b/' | relative_url }}">Variant 2B</a></td></tr>
+        <tr><th scope="row">3. As 2, with click to enlarge</th>
+          <td><a href="{{ '/homepage/3a/' | relative_url }}">Variant 3A</a></td>
+          <td><a href="{{ '/homepage/3b/' | relative_url }}">Variant 3B</a></td></tr>
+      </tbody>
+    </table>
+
+    <p>Links to pages that are not built yet point to the nearest page that exists: Consulting and Training to
+      Services, Enterprise and Pricing to the current licence page, GCSee and JScrub to their sections on the
+      current home page.</p>
+  </div>
+</section>

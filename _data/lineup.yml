@@ -1,0 +1,43 @@
+# The product line, as shown in the Products menu and on the home page variants
+# (/homepage/). `labels`, `short`, `blurb` and `href_1a` (where there is one) are what variant 1A uses (`short` on the home page, `blurb` in the Products menu); `tags` and `line` are what the other variants show. Links point at pages that exist today; replace them when the new
+# product pages are built.
+- name: JHeapo
+  href: /jheapo/
+  href_1a: /homepage/jheapo/
+  short: Java heap dump analysis
+  icon: /assets/img/jheapo-mark.svg
+  tags: [Desktop, MCP add-on]
+  labels: [Desktop, MCP]
+  blurb: Java heap dump analysis that goes well beyond what you thought possible.
+  line: Java heap dump analysis. Every finding ends in a reference chain to the classes you wrote.
+
+- name: GCSee
+  href: /#gcsee
+  href_1a: /homepage/gcsee/
+  short: GC log analysis
+  icon: /assets/img/gcsee.png
+  tags: [Free]
+  labels: [Desktop]
+  blurb: GC log analysis. Analytics that matter derived from years of experience tuning memory management.
+  line: GC log analysis. Shows what to change in the JVM configuration and where the application allocates.
+
+- name: JScrub
+  href: /#jscrub
+  href_1a: /homepage/jscrub/
+  short: Anonymizes heap dumps
+  icon: /assets/img/jscrub-duke.png
+  tags: [Free]
+  labels: [Desktop]
+  blurb: Anonymizes heap dumps so they can be safely shared.
+  line: Pseudonymizes the names and values in a heap dump, so the dump can be shared for analysis.
+
+- name: JThread
+  href: /jthread/
+  href_1a: /homepage/jthread/
+  icon: /jthread/images/duke-head.png
+  short: Thread dump analysis
+  memory_tool: false   # left out of variant 1A's list of memory analysis tooling
+  tags: [Free, Runs in your browser]
+  labels: [Browser]
+  blurb: A free to use thread dump analysis tool.
+  line: Thread dump analysis. The dump stays on your machine.

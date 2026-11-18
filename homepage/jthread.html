@@ -1,0 +1,42 @@
+---
+layout: newsite
+title: "JThread"
+permalink: /homepage/jthread/
+noindex: true
+favicon: /jthread/images/favicon-32.png
+stylesheets: [/assets/css/variant.css, /jthread/css/jthread.css]
+description: "JThread page of the new site: the JThread tool from /jthread/."
+---
+<!-- The JThread tool of the current site (jthread/index.html), copied as it is. The scripts, the stylesheet and
+     the images are the ones in /jthread/, so there is one copy of the tool. -->
+<div class="jthread-page">
+{% raw %}
+<!-- jthread:app begin: bin/publish.sh copies the lines from here to "jthread:app end" into the jheapo website -->
+<div class="jt-app" id="jthread">
+    <header class="jt-toolbar">
+        <span class="jt-brand"><img class="jt-brand-logo" src="/jthread/images/duke-head.png" alt="" width="28" height="28">JThread</span>
+        <label class="jt-button jt-button-primary" title="Files opened together are read as one set.">
+            Open thread dump(s)
+            <input type="file" id="jt-file" class="jt-file-input" multiple>
+        </label>
+        <button type="button" class="jt-button" id="jt-close" disabled title="Closes the selected dump's file, or the set. Cmd/Ctrl-click to select several.">Close</button>
+        <button type="button" class="jt-button" id="jt-categories" title="Custom categories.">Categories&hellip;</button>
+    </header>
+    <div class="jt-main" id="jt-main">
+        <nav class="jt-tree" id="jt-tree" aria-label="Thread dumps"></nav>
+        <div class="jt-splitter jt-splitter-vertical" id="jt-split-vertical" role="separator" aria-orientation="vertical"></div>
+        <section class="jt-content" id="jt-content" aria-live="polite"></section>
+        <div class="jt-splitter jt-splitter-horizontal" id="jt-split-horizontal" role="separator" aria-orientation="horizontal"></div>
+        <section class="jt-detail" id="jt-detail"></section>
+    </div>
+    <footer class="jt-status">
+        <span>JThread 0.1 &middot; LGPL-2.1</span>
+        <span id="jt-status"></span>
+    </footer>
+    <div class="jt-drop-overlay" id="jt-drop">Drop the thread dump files to analyse them</div>
+</div>
+<script src="/jthread/js/model.js"></script>
+<script src="/jthread/js/view.js"></script>
+<!-- jthread:app end -->
+{% endraw %}
+</div>

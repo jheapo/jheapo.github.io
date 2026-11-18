@@ -1,0 +1,10 @@
+# Screenshots shown in the first panel of the home page (variant 1A), in order.
+# Files are in assets/img/web/ as <name>-1400.webp, <name>-2800.webp and <name>-1400.png.
+- name: ss_assesment
+  alt: JHeapo assessment view
+- name: ss_dominator
+  alt: JHeapo dominator map
+- name: ss_entanglement
+  alt: JHeapo entanglement view
+- name: ss_classcomplexity
+  alt: JHeapo class complexity view

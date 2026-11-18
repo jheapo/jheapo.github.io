@@ -1,0 +1,227 @@
+<!-- Hero -->
+{% if page.hero == "memory" %}
+<section class="v-section v-hero v-hero--teal">
+  <div class="v-wrap v-hero-grid v-hero-grid--shots">
+    <div class="v-hero-copy">
+      <h1>{{ page.headline | default: "Using too much memory?" }}</h1>
+      <p class="v-lead">{{ page.lead | default: "Reduce memory use to improve COGS, latency and throughput with tools that trace memory use back to the source." }}</p>
+      <div class="v-actions">
+        <a class="btn btn-primary" href="{% if layout.newsite %}{{ '/homepage/contact/' | relative_url }}?about=Demo{% else %}{{ '/contact/' | relative_url }}{% endif %}">Request a demo</a>
+      </div>
+    </div>
+    <div class="v-slider" role="region" aria-roledescription="carousel" aria-label="JHeapo screenshots" data-interval="5000">
+      <div class="v-slider-window">
+        <ul class="v-slider-track">
+          {% for shot in site.data.screenshots %}
+          {% capture base %}/assets/img/web/{{ shot.name }}{% endcapture %}
+          <li class="v-slide">
+            <a class="v-zoom" href="{{ base | append: '-2800.webp' | relative_url }}" data-alt="{{ shot.alt }}" aria-label="Enlarge: {{ shot.alt }}">
+            <picture>
+              <source type="image/webp"
+                      srcset="{{ base | append: '-1400.webp' | relative_url }} 1400w, {{ base | append: '-2800.webp' | relative_url }} 2800w"
+                      sizes="(min-width: 861px) 760px, 92vw">
+              <img src="{{ base | append: '-1400.png' | relative_url }}" width="1400" height="790" alt="{{ shot.alt }}" decoding="async">
+            </picture>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="v-slider-controls">
+        {% for shot in site.data.screenshots %}
+        <button class="v-slider-dot" type="button" aria-label="Show {{ shot.alt }}"></button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% else %}
+<section class="v-section v-hero">
+  <div class="v-wrap v-hero-grid">
+    <div class="v-hero-copy">
+      <h1>Before you buy more memory, find out what’s using it.</h1>
+      <p class="v-lead">Java services grow, and their memory requirements grow with them. JHeapo shows what is
+        driving that demand: duplicated data, oversized collections, objects held longer than needed, and data
+        structures that cost more memory than the work requires.</p>
+      <p>Run the analysis yourself, let your AI agent run it through JHeapo’s MCP server, or have Kirk Pepperdine
+        investigate with you.</p>
+      <div class="v-actions">
+        <a class="btn btn-primary" href="{{ '/download/' | relative_url }}">Download</a>
+        <a class="btn v-btn-outline" href="mailto:{{ site.contact_email }}?subject=Java%20workload">Discuss your Java workload</a>
+      </div>
+      <p class="v-note">Every tool runs on your machine. Your data stays there.</p>
+    </div>
+    <img class="v-hero-art" src="{{ '/assets/img/hippo-line.svg' | relative_url }}" alt="">
+  </div>
+</section>
+{% endif %}
+
+<!-- Products -->
+{% if page.hero == "memory" %}
+<section class="v-section v-alt" id="products">
+  <div class="v-col">
+    <h2>A rich set of memory analysis tooling</h2>
+  </div>
+  <ul class="v-wrap v-products v-products--row">
+    {% for p in site.data.lineup %}
+    {% if p.memory_tool == false %}{% continue %}{% endif %}
+    {% assign link = p.href %}{% if p.href_1a %}{% assign link = p.href_1a %}{% endif %}
+    <li>
+      <a class="v-product v-product--link" href="{{ link | relative_url }}">
+        <img class="v-product-icon" src="{{ p.icon | relative_url }}" alt="" width="48" height="48">
+        <span>
+          <span class="v-product-name">{{ p.name }}</span>
+          <span class="v-product-short">{{ p.short }}</span>
+          <span class="v-tags">{% for t in p.labels %}<span class="v-tag">{{ t }}</span>{% endfor %}</span>
+        </span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<section class="v-section v-alt" id="products">
+  <div class="v-col">
+    {% if page.hero == "memory" %}
+    <h2>A rich set of memory analysis tooling</h2>
+    {% else %}
+    <h2>The tools</h2>
+    <p>Four tools for Java memory and thread analysis. Each one runs on your own machine.</p>
+    {% endif %}
+  </div>
+  <ul class="v-wrap v-products">
+    {% for p in site.data.lineup %}
+    <li class="v-product">
+      <img class="v-product-icon" src="{{ p.icon | relative_url }}" alt="" width="48" height="48">
+      <div>
+        {% assign link = p.href %}{% if page.hero == "memory" and p.href_1a %}{% assign link = p.href_1a %}{% endif %}
+        <h3><a href="{{ link | relative_url }}">{{ p.name }}</a></h3>
+        {% if page.hero == "memory" %}{% assign shown = p.labels %}{% assign text = p.blurb %}{% else %}{% assign shown = p.tags %}{% assign text = p.line %}{% endif %}
+        <p class="v-tags">{% for t in shown %}<span class="v-tag">{{ t }}</span>{% endfor %}</p>
+        <p>{{ text }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% unless page.hero == "memory" %}
+<!-- Problems -->
+<section class="v-section" id="problems">
+  <div class="v-col">
+    <h2>The bill is visible. The cause takes investigation.</h2>
+    <div class="v-problem" id="problem-capacity">
+      <h3>You need larger instances, and CPU use doesn’t explain why.</h3>
+      <p>Memory often decides the size of the instance you pay for. If the application needs less memory, a
+        smaller instance or a different deployment becomes possible. The first question is what can change
+        inside the application.</p>
+    </div>
+    <div class="v-problem">
+      <h3>Performance work keeps returning to the same service.</h3>
+      <p>GC activity, allocation pressure and a growing live set take engineering time long before they cause
+        an outage. Knowing which behaviour is responsible tells your team which work to do.</p>
+    </div>
+    <div class="v-problem" id="problem-memory">
+      <h3>You have a heap dump, and the investigation has stalled.</h3>
+      <p>A large dump, millions of objects and several plausible explanations can leave a capable team without
+        a next step. JHeapo traces the objects, references and structures behind the symptom.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Finding -->
+<section class="v-section v-alt" id="finding">
+  <div class="v-col">
+    <h2>What a finding looks like</h2>
+    <p>Every JHeapo finding ends in a reference chain from a GC root to a class you wrote. These screenshots
+      come from Tips, a demo application written with deliberate mistakes.</p>
+  </div>
+  {% include variant-figure.html name="ss_assesment" height="811"
+     alt="JHeapo assessment view for the Tips demo"
+     caption="The assessment: accumulation. 98.1% of what is reachable is retained by the dominators listed below it. The dump was taken on <code>OutOfMemoryError</code>." %}
+  {% include variant-figure.html name="ss_entanglement" height="803"
+     alt="JHeapo entanglement view for the Tips demo, with the graph from Keyword down to Tip"
+     caption="Entanglement: 1,803,213 of 1,803,232 <code>Tip</code> instances are entangled. The graph runs from the class <code>Keyword</code>, through a <code>ConcurrentHashMap</code>, down to <code>Tip</code>." %}
+</section>
+{% endunless %}
+
+<!-- Stories -->
+<section class="v-section{% if page.stories %} v-stories--{{ page.stories }}{% endif %}" id="stories">
+  <div class="v-col">
+    <h2>{{ page.stories_heading | default: "A memory investigation can change an infrastructure decision." }}</h2>
+    {% if page.hero == "memory" %}
+    {% unless page.stories == "teal" %}<p>Stories from the trenches</p>{% endunless %}
+    <article class="v-story">
+      <p>A service deployed across 1000s of machines was scheduled for a hardware upgrade that would double
+        the size of the machines in both core counts and memory. An analysis of memory complexity deferred the
+        upgrade.</p>
+    </article>
+    <article class="v-story">
+      <p>{{ page.story_2 | default: "A Polish subsidiary investigated one of their services for memory complexity which led to roughly $1 million a month reduction in their cloud bill." }}</p>
+    </article>
+    <article class="v-story">
+      <p>In the heart of London, a small company that supplied FpML processing software to financial
+        institutions used memory analysis to find opportunities to boost throughput from 100,000 TPS to
+        25,000,000. A customer was then able to reduce their 40 machine cluster to 2.</p>
+    </article>
+    {% else %}
+    <p>Results from Kirk Pepperdine’s consulting and training work.</p>
+    <article class="v-story">
+      <p class="v-story-meta">LinkedIn · Consulting</p>
+      <h3>An upgrade across more than 10,000 machines, deferred for a year</h3>
+      <p>A service with a large live set and a high allocation rate was heading for an upgrade that would double
+        the size of its machines. Reducing allocation let the team defer it for a year.</p>
+    </article>
+    <article class="v-story">
+      <p class="v-story-meta">Collaboration software company · Training</p>
+      <h3>Roughly $1 million a month off the cloud bill</h3>
+      <p>After training with Kirk, an engineering lead applied the method across the company’s services. The
+        reported result is a sustained saving of roughly $1 million a month.</p>
+    </article>
+    <article class="v-story">
+      <p class="v-story-meta">C24 · Consulting</p>
+      <h3>From 40 servers to a requirement of one plus a mirror</h3>
+      <p>An FpML processing framework was limited by its allocation rate. A day spent reducing allocation took its
+        benchmark from about 100,000 to 25 million transactions per second. A downstream customer that ran 40
+        servers needed one plus a mirror, and chose to run four.</p>
+    </article>
+    {% endif %}
+    {% unless page.hero == "memory" %}<p class="v-small">Each result belongs to its own workload.</p>{% endunless %}
+  </div>
+</section>
+
+<!-- Routes -->
+<section class="v-section v-alt{% if page.routes %} v-routes--{{ page.routes }}{% endif %}" id="routes">
+  <div class="v-col">
+    <h2>{{ page.routes_heading | default: "Start with the service that keeps costing you." }}</h2>
+  </div>
+  <ul class="v-wrap v-routes{% if page.hero == "memory" %} v-routes--row{% endif %}">
+    <li>
+      <h3>{{ page.route_1_title | default: "Run it yourself" }}</h3>
+      <p>{{ page.route_1_text | default: "Download JHeapo, GCSee or JScrub, or open JThread in your browser." }}</p>
+      <a class="btn {% if page.hero == "memory" %}v-btn-outline{% else %}btn-primary{% endif %}" href="{% if layout.newsite %}{{ '/homepage/downloads/' | relative_url }}{% else %}{{ '/download/' | relative_url }}{% endif %}">Download</a>
+    </li>
+    <li>
+      <h3>{% if page.route_2_title %}{{ page.route_2_title }}{% elsif page.hero == "memory" %}Have us investigate{% else %}Have Kirk investigate{% endif %}</h3>
+      <p>{{ page.route_2_text | default: "Agree the question and the scope, then receive a written analysis naming the classes, fields and changes to test." }}</p>
+      {% if page.hero == "memory" %}
+      <a class="btn v-btn-outline" href="{% if layout.newsite %}{{ '/homepage/contact/' | relative_url }}?about=Consulting{% else %}{{ '/services/' | relative_url }}{% endif %}">Consulting</a>
+      {% else %}
+      <a class="btn v-btn-outline" href="mailto:{{ site.contact_email }}?subject=Java%20workload">Discuss your Java workload</a>
+      {% endif %}
+    </li>
+    {% unless page.hero == "memory" %}
+    <li>
+      <h3>Enterprise</h3>
+      <p>Site-wide use of the products, with support.</p>
+      <a class="btn v-btn-outline" href="{{ '/license/' | relative_url }}">Enterprise</a>
+    </li>
+    {% endunless %}
+    <li>
+      <h3>Training</h3>
+      <p>{{ page.route_3_text | default: "Java memory and performance investigation, taught to your engineers." }}</p>
+      <a class="btn v-btn-outline" href="{% if layout.newsite %}{{ '/homepage/contact/' | relative_url }}?about=Training{% else %}{{ '/services/' | relative_url }}{% endif %}">Training</a>
+    </li>
+  </ul>
+</section>

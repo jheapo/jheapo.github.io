@@ -1,0 +1,21 @@
+# Plans sold through Paddle on /license/. Card text, features and the Paddle price
+# for each environment (sandbox and production use different price IDs). The price
+# shown on the card comes from Paddle, never from this file.
+- name: Basic
+  features:
+    - Email support for installation and use
+    - Bug fixes
+    - Every new release while your subscription is active
+  price_id:
+    sandbox: pri_01m73vzfe37ncczvp57jcraape
+    production: ""
+
+- name: Advanced
+  features:
+    - Everything in Basic
+    - Highest priority for support and bug fixes
+    - Help with the heap-analysis questions themselves, not just the tool
+    - Priority consideration for the features you ask for
+  price_id:
+    sandbox: pri_01m73w3ey7a4gekq1a8mjspkzq
+    production: ""

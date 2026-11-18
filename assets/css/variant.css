@@ -1,0 +1,320 @@
+/* Home page variants (/homepage/). Loaded after main.css and only on variant pages;
+   uses main.css's colour variables, so the light and dark schemes carry over. */
+
+/* ---------- widths ---------- */
+.v-wrap { width: min(var(--wrap), 92vw); margin-inline: auto; }
+.v-col  { width: min(var(--wrap), 92vw); margin-inline: auto; }
+.v-band { width: min(var(--wrap), 92vw); margin-inline: auto; }
+
+/* Variants 2 and 3: prose in a reading column, screenshots in a wider band. */
+.v-w2 .v-col > *, .v-w3 .v-col > * { max-width: 68ch; }
+.v-w2 .v-band, .v-w3 .v-band { width: min(1400px, 96vw); }
+
+/* ---------- text ---------- */
+.v-page { color: var(--ink); }
+.v-page p:not(.jt-app *) { margin: 0 0 1rem; }
+.v-page h1:not(.jt-app *) { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; }
+.v-page h2:not(.jt-app *) { font-size: clamp(1.6rem, 3.2vw, 2.2rem); font-weight: 800; margin-bottom: .6rem; }
+.v-page h3:not(.jt-app *) { font-size: 1.2rem; font-weight: 750; margin-bottom: .35rem; }
+.v-page code:not(.jt-app *) { font-size: .92em; }
+.v-lead { font-size: 1.18rem; }
+.v-note, .v-small { font-size: .95rem; }
+/* Panels copied from the current site keep their own centring and spacing. */
+.v-page .section-lede { margin: 0 auto 2.8rem; }
+.v-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- larger text (front matter `text: large`) ---------- */
+/* Every size on the page is in rem, so one change to the root size scales all of it: 20 px in place of 16 px. */
+html:has(body.v-text-large) { font-size: 125%; }
+/* The first heading keeps the size it had at 18 px (at most 61 px). */
+.v-text-large.v-page h1:not(.jt-app *) { font-size: clamp(2rem, 5vw, 3.06rem); }
+.v-text-large .v-tag { font-size: .85rem; }
+
+/* ---------- focus and skip link ---------- */
+.v-page a:focus-visible, .v-page summary:focus-visible, .v-page button:focus-visible {
+  outline: 3px solid var(--brand); outline-offset: 3px; border-radius: 4px;
+}
+.v-skip {
+  position: absolute; left: 1rem; top: -3rem; z-index: 100;
+  background: var(--brand); color: #fff; padding: .6rem 1rem; border-radius: 8px; font-weight: 700;
+}
+.v-skip:focus { top: .6rem; color: #fff; }
+
+/* ---------- buttons ---------- */
+.v-btn-outline { border-color: var(--brand); color: var(--brand-ink); }
+.v-btn-outline:hover { background: var(--brand); color: #fff; }
+@media (prefers-color-scheme: dark) { .v-btn-outline { color: var(--ink); } }
+.v-actions { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1.6rem 0 1rem; }
+
+/* ---------- header ---------- */
+.v-header {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: saturate(150%) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.v-nav { display: flex; align-items: center; justify-content: space-between; min-height: 64px; }
+.v-menu-list { display: flex; align-items: center; gap: 1.4rem; list-style: none; margin: 0; padding: 0; }
+.v-menu-list > li > a, .v-sub > summary { color: var(--ink); font-weight: 600; font-size: .97rem; }
+.v-menu-list > li > a.btn { color: #fff; padding: .55rem 1.2rem; }
+.v-sub { position: relative; }
+.v-sub > summary { cursor: pointer; list-style: none; }
+.v-sub > summary::-webkit-details-marker { display: none; }
+.v-sub > summary::after { content: " ▾"; font-size: .8em; }
+.v-sub-list {
+  position: absolute; top: calc(100% + .7rem); left: -1rem; min-width: 22rem;
+  list-style: none; margin: 0; padding: .5rem;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg);
+}
+.v-sub-list a { display: block; padding: .6rem .8rem; border-radius: 8px; color: var(--ink); }
+.v-sub-list a:hover { background: var(--bg-alt); }
+.v-sub-name { display: block; font-weight: 700; }
+.v-sub-line { display: block; font-size: .9rem; }
+.v-menu-list > li > .v-index-link { display: none; }
+.v-burger { display: none; }
+
+/* ---------- sections ---------- */
+.v-section { padding: clamp(3rem, 6vw, 5rem) 0; }
+.v-alt { background: var(--bg-alt); }
+
+.v-hero-grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 2rem; align-items: center; }
+.v-hero-copy > * { max-width: 60ch; }
+.v-hero-art { width: 100%; max-width: 420px; justify-self: end; }
+
+.v-products {
+  list-style: none; padding: 0; margin-top: 1.6rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 3rem;
+}
+.v-product { display: grid; grid-template-columns: 48px 1fr; gap: 1.1rem; padding: 1.3rem 0; border-top: 1px solid var(--line); }
+.v-product-icon { width: 48px; height: 48px; object-fit: contain; }
+.v-product h3 a { color: var(--ink); }
+.v-product h3 a:hover { color: var(--brand); }
+.v-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .5rem !important; }
+.v-tag {
+  font-size: .8rem; font-weight: 700; padding: .1rem .55rem;
+  border: 1.5px solid var(--brand); border-radius: 999px; color: var(--brand-ink);
+}
+@media (prefers-color-scheme: dark) { .v-tag { color: var(--ink); } }
+
+.v-problem { padding: 1.3rem 0; border-top: 1px solid var(--line); }
+.v-problem:first-of-type { margin-top: 1.2rem; }
+
+.v-figure { margin: 2.2rem 0 0; }
+.v-band img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); }
+.v-page .v-caption { margin-top: .8rem; }
+
+.v-story { padding: 1.4rem 0; border-top: 1px solid var(--line); }
+.v-story:first-of-type { margin-top: 1.2rem; }
+.v-story h3 { font-size: 1.45rem; }
+.v-story-meta { font-weight: 700; font-size: .92rem; margin-bottom: .3rem !important; }
+
+.v-routes {
+  list-style: none; padding: 0; margin-top: 1.2rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 3rem;
+}
+.v-routes li { padding: 1.4rem 0; border-top: 1px solid var(--line); }
+/* Variant 1A: the items in one row; the rule for narrow windows below stacks them. */
+.v-routes--row { grid-template-columns: repeat(3, 1fr); }
+/* Each item is a column with its button at the bottom, so the buttons line up. */
+.v-routes--row li { display: flex; flex-direction: column; align-items: flex-start; }
+.v-routes--row li .btn { margin-top: auto; }
+
+/* ---------- variant 1A: the product list, each entry one link (name, a few words, labels) ---------- */
+.v-product--link { color: var(--ink); align-items: center; grid-template-columns: 96px 1fr; gap: 1.5rem; }
+.v-product--link .v-product-icon { width: 96px; height: 96px; }
+.v-product--link:hover { color: var(--ink); }
+.v-product--link:hover .v-product-name { color: var(--brand); }
+.v-product-name { display: block; font-size: 1.4rem; font-weight: 750; line-height: 1.2; }
+.v-product-short { display: block; margin: .15rem 0 .5rem; }
+.v-product--link .v-tags { margin: 0; }
+/* The entries in one row; the rule for narrow windows below stacks them. */
+.v-products--row { grid-template-columns: repeat(3, 1fr); gap: 0 2.5rem; }
+/* In the row each mark is 192 px high and sits above its text; a wide mark (the hippo) uses the column's width. */
+.v-products--row .v-product--link { grid-template-columns: 1fr; gap: 1rem; align-items: start; }
+.v-products--row .v-product-icon { height: 192px; width: auto; max-width: 100%; object-fit: contain; object-position: left center; }
+
+/* ---------- first panel on teal: the site's dark teal band (#103f49 to #0b2b33), a little lighter ---------- */
+.v-hero--teal { background: radial-gradient(120% 140% at 80% -10%, #1a606c, #114650); color: #fff; }
+.v-hero--teal h1 { color: #fff; }
+.v-hero--teal a:focus-visible, .v-hero--teal button:focus-visible { outline-color: #fff; }
+/* A teal button would not stand out on teal, so here it is white with teal text. */
+.v-hero--teal .btn-primary { background: #fff; color: var(--brand-ink); }
+.v-hero--teal .btn-primary:hover { background: #e3f1f2; color: var(--brand-ink); }
+.v-hero--teal .v-slider-window { border-color: rgba(255, 255, 255, .25); }
+
+/* ---------- a headline whose last line rises: the lines before it are smaller, and one word is in the site's amber ---------- */
+.v-h1-lead { font-size: .78em; }
+.v-h1-peak { white-space: nowrap; }
+.v-h1-stress { color: var(--accent); }
+
+/* ---------- first panel: screenshots, one visible at a time ---------- */
+.v-hero-grid--shots { grid-template-columns: 1fr 1.15fr; gap: 3rem; }
+.v-slider { min-width: 0; position: relative; }
+.v-slider-window { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: #1b1b1b; }
+.js .v-slider-window { overflow: hidden; }
+.v-slider-track { display: flex; list-style: none; margin: 0; padding: 0; transition: transform .6s ease; }
+.v-slide { flex: 0 0 100%; }
+.v-slide img { width: 100%; height: auto; aspect-ratio: 1400 / 790; object-fit: cover; object-position: left top; }
+/* The dots sit on the screenshot, centred along its bottom edge. */
+.v-slider-controls {
+  display: none; position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
+  padding: 0 6px; border-radius: 999px; background: rgba(0, 0, 0, .6);
+}
+.js .v-slider-controls { display: flex; }
+/* The button is 24 px square so it is easy to hit; the dot drawn inside it is 8 px. */
+.v-slider-dot {
+  width: 24px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer;
+  display: grid; place-items: center;
+}
+.v-slider-dot::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%;
+  background: #fff; opacity: .45;
+}
+.v-slider-dot[aria-current="true"]::before { opacity: 1; }
+
+/* ---------- larger screenshots in the first panel (front matter `shots: large`) ---------- */
+/* The text keeps a 470 px column; the screenshots take the rest and reach up to 160 px past the page column on the right. */
+.v-shots-large .v-hero-grid--shots { grid-template-columns: minmax(0, 470px) 1fr; }
+.v-shots-large .v-slider { margin-right: calc(-1 * clamp(0px, (100vw - var(--wrap)) / 2 - 24px, 160px)); }
+/* The frame and tilt of the screenshot in the "JHeapo homepage hero redesign" design: a thin light border, rounded
+   corners and a deep shadow. The turn in perspective faces the screenshot toward the centre of the page: its left side sits further back. */
+.v-shots-large .v-slider { transform: perspective(1600px) rotateY(-12deg) rotateX(2deg); transform-origin: right center; }
+.v-shots-large .v-hero { overflow: hidden; }
+.v-shots-large .v-slider-window { border: 1px solid rgba(255, 255, 255, .45); border-radius: 14px; box-shadow: 0 34px 70px rgba(0, 0, 0, .45); }
+
+/* ---------- stories in teal on white, each marked with the logo from the menu bar (front matter `stories: teal`) ---------- */
+.v-stories--teal { background: #fff; color: #0e7c86; }
+.v-stories--teal h2 { color: #213456; }
+/* The heading stays on one line at its full size. It is left-aligned and at most 41 px wider than the page column, which the window's margin absorbs. Windows narrower than 960 px wrap it. */
+@media (min-width: 960px) { .v-stories--teal h2 { white-space: nowrap; } }
+.v-stories--teal .v-story {
+  border-top-color: rgba(14, 124, 134, .25);
+  padding-left: 3.6rem;
+  background: url("../img/logo-mark.svg") no-repeat left 1.5rem / 2.2rem 2.2rem;
+}
+
+/* ---------- the last section on teal, the same shade as the first panel (front matter `routes: teal`) ---------- */
+.v-routes--teal { background: radial-gradient(120% 140% at 80% -10%, #1a606c, #114650); color: #fff; }
+.v-routes--teal h2, .v-routes--teal h3 { color: #fff; }
+.v-routes--teal .v-routes li { border-top-color: rgba(255, 255, 255, .3); }
+.v-routes--teal a:focus-visible { outline-color: #fff; }
+/* Teal outline buttons would not show on teal, so here they are white. */
+.v-routes--teal .v-btn-outline { border-color: #fff; color: #fff; }
+.v-routes--teal .v-btn-outline:hover { background: #fff; color: var(--brand-ink); }
+
+/* ---------- variant 3: enlarge ---------- */
+.v-zoom { display: block; position: relative; cursor: zoom-in; }
+.v-zoom-hint {
+  position: absolute; right: .8rem; bottom: .8rem;
+  background: var(--bg); color: var(--ink); font-weight: 700; font-size: .85rem;
+  padding: .3rem .7rem; border-radius: 999px; border: 1px solid var(--line);
+}
+.v-lightbox {
+  width: 96vw; height: 92vh; max-width: none; max-height: none; padding: 0;
+  border: 1px solid var(--line); border-radius: 12px; background: #1b1b1b; overflow: auto;
+}
+.v-lightbox::backdrop { background: rgba(0, 0, 0, .7); }
+.v-lightbox-img { width: 2000px; max-width: none; }
+.v-lightbox-close {
+  position: sticky; top: .6rem; left: calc(100% - 3.2rem); z-index: 1;
+  width: 2.4rem; height: 2.4rem; border-radius: 999px; border: 0;
+  background: #fff; color: #10233b; font-size: 1.5rem; font-weight: 700; cursor: pointer;
+}
+
+/* ---------- footer ---------- */
+.v-footer { border-top: 1px solid var(--line); padding: 2.5rem 0 1.5rem; }
+.v-footer-cols { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 4rem; }
+.v-footer-head { font-size: 1rem !important; margin-bottom: .4rem !important; }
+.v-footer ul { list-style: none; padding: 0; margin: 0; }
+.v-footer li { margin: .25rem 0; }
+.v-footer a { color: var(--ink); }
+.v-footer a:hover { color: var(--brand); }
+.v-footer-legal { display: flex; gap: 1.5rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: .9rem; }
+
+/* ---------- the current site's menu (front matter `menu: classic`): its last link is outlined ---------- */
+.v-menu-list > li > a.v-menu-outline { border: 1.5px solid var(--line); border-radius: 999px; padding: .4rem 1rem; }
+.v-menu-list > li > a.v-menu-outline:hover { border-color: var(--brand); }
+
+/* ---------- footer transposed (front matter `footer: rows`): each category is a row, its links run across ---------- */
+.v-footer-cols--rows { display: block; }
+.v-footer-cols--rows > div { display: flex; align-items: baseline; gap: 1rem; padding: 0; line-height: 1.5; }
+.v-footer-cols--rows .v-footer-head { min-width: 5.2rem; margin-bottom: 0 !important; }
+.v-footer-cols--rows ul { display: flex; flex-wrap: wrap; gap: 0 1.1rem; }
+.v-footer-cols--rows li { margin: 0; }
+
+/* ---------- phones and narrow windows ---------- */
+@media (max-width: 860px) {
+  .v-hero-grid, .v-products, .v-routes { grid-template-columns: 1fr; }
+  .v-hero-art { display: none; }
+  .v-shots-large .v-hero-grid--shots { grid-template-columns: 1fr; }
+  .v-shots-large .v-slider { margin-right: 0; transform: none; }
+  .v-footer-cols { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+  .v-burger {
+    display: block; width: 44px; height: 44px; position: relative;
+    background: none; border: 0; cursor: pointer;
+  }
+  .v-burger-bars, .v-burger-bars::before, .v-burger-bars::after {
+    content: ""; position: absolute; left: 9px; width: 26px; height: 2px; background: var(--ink); border-radius: 2px;
+  }
+  .v-burger-bars { top: 21px; }
+  .v-burger-bars::before { left: 0; top: -8px; }
+  .v-burger-bars::after { left: 0; top: 8px; }
+
+  .v-nav { flex-wrap: wrap; }
+  .v-menu { width: 100%; }
+  .js .v-menu { display: none; }
+  .js .v-menu.is-open { display: block; }
+  .v-menu-list { flex-direction: column; align-items: stretch; gap: 0; padding-bottom: 1rem; }
+  .v-menu-list > li > a, .v-sub > summary { display: block; padding: .85rem 0; border-top: 1px solid var(--line); }
+  .v-menu-cta { padding-top: .8rem; }
+  .v-menu-cta a.btn { display: block; text-align: center; border-top: 0; }
+  .v-menu-list > li > a.v-menu-outline { border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: .85rem 0; }
+
+  /* Menus A: the Products and Use cases lists open inside the menu. */
+  .v-sub-list { position: static; min-width: 0; box-shadow: none; border: 0; padding: 0 0 .5rem 1rem; background: none; }
+
+  /* Menus B: Products and Use cases are plain links to their sections. */
+  .v-menus-b .v-sub { display: none; }
+  .v-menus-b .v-menu-list > li > .v-index-link { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v-page *, .v-page *::before, .v-page *::after { transition: none !important; scroll-behavior: auto !important; }
+}
+.v-download-version { font-weight: 400; font-size: .85em; }
+
+/* ---------- contact page (/homepage/contact/) ---------- */
+.v-contact { max-width: 720px; }
+.v-contact-form { display: none; }
+.js .v-contact-form { display: block; }
+/* A form that posts to contact_form_url works without the script. */
+.v-contact-form--post { display: block; }
+/* Left empty by a person; a program that fills every field marks its submission as spam. */
+.v-contact-trap { position: absolute; left: -9999px; }
+.v-field { margin-bottom: 1.1rem; }
+.v-field label { display: block; font-weight: 700; margin-bottom: .3rem; }
+.v-field input, .v-field select, .v-field textarea {
+  width: 100%; padding: .6rem .75rem; font: inherit; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--ink-soft); border-radius: 8px;
+}
+.v-field textarea { resize: vertical; }
+.v-field input:focus-visible, .v-field select:focus-visible, .v-field textarea:focus-visible {
+  outline: 3px solid var(--brand-2); outline-offset: 2px;
+}
+.v-contact-error { color: #b3261e; font-weight: 700; }
+.v-contact-result { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+.v-contact-text {
+  white-space: pre-wrap; font: inherit; background: var(--bg-alt); border: 1px solid var(--line);
+  border-radius: 8px; padding: 1rem; margin: 0 0 1rem;
+}
+.v-contact-status { margin-left: .8rem; }
+
+/* ---------- licence page (/homepage/licence/) ---------- */
+.v-licence-table { width: 100%; border-collapse: collapse; margin: 1rem 0 2rem; }
+.v-licence-table th, .v-licence-table td { text-align: left; vertical-align: top; padding: .7rem .9rem; border-bottom: 1px solid var(--line); }
+.v-licence-table tbody th { white-space: nowrap; }
+/* The long-text column of the current site colours its text grey; the new site keeps the text colour. */
+.v-page .prose p, .v-page .prose li, .v-page .prose td { color: var(--ink); }
+/* Long text (terms, privacy, licences): section headings one step above the text, not the home page's size. */
+.v-page .prose h2:not(.jt-app *) { font-size: 1.5rem; margin: 2em 0 .5em; }
